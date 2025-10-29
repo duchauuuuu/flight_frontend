@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Flight Booking",
+    "slug": "flight",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/iconungdung.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/anhkhoichay.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/iconungdung.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.duchauuuuu.flight"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sqlite"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "11da1eab-2ab1-4c52-8e6e-c83f54dbd913"
+      }
+    },
+    "owner": "duchauuuuu"
+  }
+}
