@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
+import { TouchableOpacity, Text } from 'react-native';
 
 import SearchScreen from '../screens/SearchScreen';
 import MyTicketsScreen from '../screens/MyTicketsScreen';
@@ -39,12 +40,12 @@ export default function TabNavigator() {
           
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#0066CC',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#EAB308',
+        tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
           backgroundColor: '#fff',
           borderTopWidth: 1,
-          borderTopColor: '#e0e0e0',
+          borderTopColor: '#E5E7EB',
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
           paddingTop: 8,
@@ -54,7 +55,7 @@ export default function TabNavigator() {
           fontWeight: '500',
         },
         headerStyle: {
-          backgroundColor: '#0066CC',
+          backgroundColor: '#f9a912',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -77,6 +78,18 @@ export default function TabNavigator() {
         options={{
           title: 'Vé của tôi',
           tabBarLabel: 'Vé của tôi',
+          headerRight: () => (
+            <TouchableOpacity 
+              style={{ marginRight: 16, flexDirection: 'row', alignItems: 'center' }}
+              onPress={() => {
+                // This will be handled by the screen itself
+                console.log('Refresh tickets');
+              }}
+            >
+              <Icon name="refresh" size={20} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 14, marginLeft: 4, fontWeight: '500' }}>Làm mới</Text>
+            </TouchableOpacity>
+          ),
         }}
       />
       <Tab.Screen 
