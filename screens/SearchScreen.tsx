@@ -1,66 +1,58 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Image } from 'react-native';
+import { Video, ResizeMode } from 'expo-av'; // Uncomment for video background
 import FlightBookingCard from '../components/FlightBookingCard';
 import RecentSearches from '../components/RecentSearches';
+import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 
 export default function SearchScreen() {
   const [userName] = useState('User');
-  const [tripType, setTripType] = useState<'round' | 'oneway'>('round');
+  const videoRef = useRef<Video>(null);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header Section with Gradient */}
-      <LinearGradient
-        colors={['#FDE68A', '#FEF3C7', '#FEFCE8']}
-        style={styles.headerGradient}
+      {/* Header Section with background image */}
+      {/* <ImageBackground
+        source={require('../assets/bg2.png')}
+        style={styles.headerImage}
+        imageStyle={styles.headerImageStyle}
       >
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Chào {userName}!</Text>
           <Text style={styles.headerSubtitle}>Chúc bạn có một chuyến bay vui vẻ</Text>
         </View>
-      </LinearGradient>
+      </ImageBackground> */}
+
+      {/* Uncomment below for VIDEO background (and comment out ImageBackground above) */}
+      <View style={styles.headerVideo}>
+        <Video
+          ref={videoRef}
+          source={require('../assets/bg.mp4')}
+          style={styles.video}
+          resizeMode={ResizeMode.COVER}
+          isLooping
+          shouldPlay
+          isMuted
+        />
+        <View style={styles.headerContent}>
+          <View style={styles.headerTop}>
+            <View style={styles.logoContainer}>
+              <Icon name="airplane" size={32} color="#FFFFFF" />
+              <Text style={styles.logoText}>Flight</Text>
+            </View>
+            <TouchableOpacity style={styles.userGreeting}>
+              <Text style={styles.greetingText}>Chào {userName}</Text>
+              <Icon name="chevron-right" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.headerSubtitle}>Chúc bạn có một chuyến bay vui vẻ</Text>
+        </View>
+      </View>
 
       {/* Main Content */}
       <View style={styles.mainContent}>
-        {/* Trip Type Tabs */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            onPress={() => setTripType('round')}
-            style={[
-              styles.tab,
-              tripType === 'round' ? styles.tabActive : styles.tabInactive,
-            ]}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                tripType === 'round' ? styles.tabTextActive : styles.tabTextInactive,
-              ]}
-            >
-              Khứ hồi
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setTripType('oneway')}
-            style={[
-              styles.tab,
-              tripType === 'oneway' ? styles.tabActive : styles.tabInactive,
-            ]}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                tripType === 'oneway' ? styles.tabTextActive : styles.tabTextInactive,
-              ]}
-            >
-              Một chiều
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Booking Card */}
-        <FlightBookingCard tripType={tripType} />
+        <FlightBookingCard />
 
         {/* Recent Searches */}
         <RecentSearches />
@@ -74,61 +66,89 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fcf4dd',
   },
-  headerGradient: {
-    paddingTop: 32,
-    paddingBottom: 96,
+  // Styles for IMAGE background (currently active)
+  headerImage: {
+    height: 400,
+    paddingTop: 50,
     paddingHorizontal: 24,
+    justifyContent: 'flex-start',
+  },
+  headerImageStyle: {
+    resizeMode: 'cover',
   },
   headerContent: {
     zIndex: 10,
+    paddingTop: 50,
+    paddingHorizontal: 24,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logoText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 10,
+  },
+  userGreeting: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    gap: 4,
+  },
+  greetingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
   },
   headerTitle: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#111827',
+    color: '#FFFFFF', // Use '#111827' for image background
     marginBottom: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 10,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#374151',
+    color: '#FFFFFF', // Use '#374151' for image background
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
+  },
+  // Styles for VIDEO background (currently active)
+  headerVideo: {
+    height: 400,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  video: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
   },
   mainContent: {
-    marginTop: -72,
+    marginTop: -180,
     paddingHorizontal: 24,
     paddingBottom: 32,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 24,
-  },
-  tab: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-  },
-  tabActive: {
-    backgroundColor: '#fff',
-    borderColor: '#EAB308',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  tabInactive: {
-    backgroundColor: '#fff',
-    borderColor: '#E5E7EB',
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  tabTextActive: {
-    color: '#EAB308',
-  },
-  tabTextInactive: {
-    color: '#6B7280',
   },
 });
