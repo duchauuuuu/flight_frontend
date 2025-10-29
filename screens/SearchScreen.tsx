@@ -64,7 +64,7 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fcf4dd',
+    backgroundColor: '#fefefe',
   },
   // Styles for IMAGE background (currently active)
   headerImage: {
