@@ -27,7 +27,7 @@ export default function SearchScreen() {
       <View style={styles.headerVideo}>
         <Video
           ref={videoRef}
-          source={require('../assets/bg.mp4')}
+          source={require('../assets/bg5.mp4')}
           style={styles.video}
           resizeMode={ResizeMode.COVER}
           isLooping
@@ -45,7 +45,6 @@ export default function SearchScreen() {
               <Icon name="chevron-right" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.headerSubtitle}>Chúc bạn có một chuyến bay vui vẻ</Text>
         </View>
       </View>
 
@@ -103,7 +102,6 @@ const styles = StyleSheet.create({
   userGreeting: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,

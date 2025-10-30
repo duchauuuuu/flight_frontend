@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity, Text, View } from 'react-native';
 
 import SearchScreen from '../screens/SearchScreen';
 import MyTicketsScreen from '../screens/MyTicketsScreen';
@@ -40,7 +40,7 @@ export default function TabNavigator() {
           
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#EAB308',
+        tabBarActiveTintColor: '#2873e6',
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
           backgroundColor: '#fff',
@@ -55,7 +55,7 @@ export default function TabNavigator() {
           fontWeight: '500',
         },
         headerStyle: {
-          backgroundColor: '#f9a912',
+          backgroundColor: '#2873e6',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -87,7 +87,10 @@ export default function TabNavigator() {
               }}
             >
               <Icon name="refresh" size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 14, marginLeft: 4, fontWeight: '500' }}>Làm mới</Text>
+              <View style={{ marginLeft: 4 }}>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '500' }}>Làm mới</Text>
+                <View style={{ height: 1.5, backgroundColor: '#fff' }} />
+              </View>
             </TouchableOpacity>
           ),
         }}
@@ -106,6 +109,7 @@ export default function TabNavigator() {
         options={{
           title: 'Tài khoản',
           tabBarLabel: 'Tài khoản',
+          headerShown: false,
         }}
       />
     </Tab.Navigator>

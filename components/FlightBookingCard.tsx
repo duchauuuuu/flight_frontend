@@ -133,7 +133,7 @@ export default function FlightBookingCard() {
               <View style={styles.routeRow}>
                 <View style={styles.routeItem}>
                   <View style={styles.routeIconContainer}>
-                    <Icon name="airplane-takeoff" size={16} color="#EAB308" />
+                    <Icon name="airplane-takeoff" size={16} color="#2873e6" />
                   </View>
                   <View style={styles.routeTextContainer}>
                     <Text style={styles.routeLabel}>Điểm đi</Text>
@@ -143,12 +143,12 @@ export default function FlightBookingCard() {
                 </View>
 
                 <View style={styles.arrowContainer}>
-                  <Icon name="arrow-right" size={24} color="#EAB308" />
+                  <Icon name="swap-horizontal" size={24} color="#2873e6" />
                 </View>
 
                 <View style={styles.routeItem}>
                   <View style={styles.routeIconContainer}>
-                    <Icon name="airplane-landing" size={16} color="#EAB308" />
+                    <Icon name="airplane-landing" size={16} color="#2873e6" />
                   </View>
                   <View style={styles.routeTextContainer}>
                     <Text style={styles.routeLabel}>Điểm đến</Text>
@@ -161,7 +161,7 @@ export default function FlightBookingCard() {
               {/* Date */}
               <View style={styles.gridItem}>
                 <View style={styles.iconContainer}>
-                  <Icon name="calendar" size={24} color="#EAB308" />
+                  <Icon name="calendar" size={24} color="#2873e6" />
                 </View>
                 <View style={styles.textContainer}>
                   <Text style={styles.label}>Ngày đi</Text>
@@ -174,7 +174,7 @@ export default function FlightBookingCard() {
           {/* Add Flight Button */}
           {flights.length < 5 && (
             <TouchableOpacity style={styles.addFlightButton} onPress={addFlight}>
-              <Icon name="plus-circle" size={20} color="#EAB308" />
+              <Icon name="plus-circle" size={20} color="#2873e6" />
               <Text style={styles.addFlightText}>Thêm chuyến bay</Text>
             </TouchableOpacity>
           )}
@@ -183,7 +183,7 @@ export default function FlightBookingCard() {
           <View style={styles.grid}>
             <View style={styles.gridItem}>
               <View style={styles.iconContainer}>
-                <Icon name="account-group" size={24} color="#EAB308" />
+                <Icon name="account-group" size={24} color="#2873e6" />
               </View>
               <View style={styles.textContainer}>
                 <Text style={styles.label}>Hành khách</Text>
@@ -193,7 +193,7 @@ export default function FlightBookingCard() {
 
             <View style={styles.gridItem}>
               <View style={styles.iconContainer}>
-                <Icon name="seat-passenger" size={24} color="#EAB308" />
+                <Icon name="seat-passenger" size={24} color="#2873e6" />
               </View>
               <View style={styles.textContainer}>
                 <Text style={styles.label}>Hạng ghế</Text>
@@ -210,7 +210,7 @@ export default function FlightBookingCard() {
             {/* Departure */}
             <View style={styles.routeItem}>
               <View style={styles.routeIconContainer}>
-                <Icon name="airplane-takeoff" size={16} color="#EAB308" />
+                <Icon name="airplane-takeoff" size={16} color="#2873e6" />
               </View>
               <View style={styles.routeTextContainer}>
                 <Text style={styles.routeLabel}>Điểm đi</Text>
@@ -221,13 +221,13 @@ export default function FlightBookingCard() {
 
             {/* Arrow Icon */}
             <View style={styles.arrowContainer}>
-              <Icon name="swap-horizontal" size={24} color="#EAB308" />
+              <Icon name="swap-horizontal" size={24} color="#2873e6" />
             </View>
 
             {/* Arrival */}
             <View style={styles.routeItem}>
               <View style={styles.routeIconContainer}>
-                <Icon name="airplane-landing" size={16} color="#EAB308" />
+                <Icon name="airplane-landing" size={16} color="#2873e6" />
               </View>
               <View style={styles.routeTextContainer}>
                 <Text style={styles.routeLabel}>Điểm đến</Text>
@@ -238,24 +238,43 @@ export default function FlightBookingCard() {
           </View>
 
           {/* Dates */}
-          <View style={styles.gridItem}>
-            <View style={styles.iconContainer}>
-              <Icon name="calendar" size={24} color="#EAB308" />
+          {tripType === 'round' ? (
+            <>
+              <View style={styles.gridItem}>
+                <View style={styles.iconContainer}>
+                  <Icon name="calendar" size={24} color="#2873e6" />
+                </View>
+                <View style={styles.textContainer}>
+                  <Text style={styles.label}>Ngày đi</Text>
+                  <Text style={styles.value}>{departDate}</Text>
+                </View>
+              </View>
+              <View style={styles.gridItem}>
+                <View style={styles.iconContainer}>
+                  <Icon name="calendar" size={24} color="#2873e6" />
+                </View>
+                <View style={styles.textContainer}>
+                  <Text style={styles.label}>Ngày về</Text>
+                  <Text style={styles.value}>{returnDate}</Text>
+                </View>
+              </View>
+            </>
+          ) : (
+            <View style={styles.gridItem}>
+              <View style={styles.iconContainer}>
+                <Icon name="calendar" size={24} color="#2873e6" />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={styles.label}>Ngày đi</Text>
+                <Text style={styles.value}>{departDate}</Text>
+              </View>
             </View>
-            <View style={styles.textContainer}>
-              <Text style={styles.label}>
-                {tripType === 'round' ? 'Ngày đi - Ngày về' : 'Ngày đi'}
-              </Text>
-              <Text style={styles.value}>
-                {departDate}{tripType === 'round' ? ` - ${returnDate}` : ''}
-              </Text>
-            </View>
-          </View>
+          )}
 
           {/* Passengers */}
           <View style={styles.gridItem}>
             <View style={styles.iconContainer}>
-              <Icon name="account-group" size={24} color="#EAB308" />
+              <Icon name="account-group" size={24} color="#2873e6" />
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.label}>Hành khách</Text>
@@ -266,7 +285,7 @@ export default function FlightBookingCard() {
           {/* Seat Class */}
           <View style={styles.gridItem}>
             <View style={styles.iconContainer}>
-              <Icon name="seat-passenger" size={24} color="#EAB308" />
+              <Icon name="seat-passenger" size={24} color="#2873e6" />
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.label}>Hạng ghế</Text>
@@ -318,7 +337,7 @@ const styles = StyleSheet.create({
   tabActive: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#e6b15f',
+    borderColor: '#2873e6',
   },
   tabInactive: {
     backgroundColor: 'transparent',
@@ -329,7 +348,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tabTextActive: {
-    color: '#faab12',
+    color: '#2873e6',
   },
   tabTextInactive: {
     color: '#000000',
@@ -343,7 +362,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   iconContainer: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'transparent',
     padding: 12,
     borderRadius: 12,
     marginRight: 16,
@@ -371,7 +390,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   routeItem: {
     flex: 1,
@@ -379,13 +398,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   routeIconContainer: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'transparent',
     padding: 8,
     borderRadius: 8,
     marginRight: 8,
   },
   routeTextContainer: {
     flex: 1,
+    minWidth: 0,
   },
   routeLabel: {
     fontSize: 10,
@@ -403,7 +423,7 @@ const styles = StyleSheet.create({
     color: '#4B5563',
   },
   arrowContainer: {
-    marginHorizontal: 8,
+    marginHorizontal: 4,
     paddingTop: 16,
   },
   flightSection: {
@@ -412,7 +432,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFFFFF',
   },
   flightHeader: {
     flexDirection: 'row',
@@ -431,7 +451,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     borderWidth: 2,
-    borderColor: '#EAB308',
+    borderColor: '#2873e6',
     borderStyle: 'dashed',
     borderRadius: 12,
     marginBottom: 20,
@@ -439,17 +459,17 @@ const styles = StyleSheet.create({
   addFlightText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#EAB308',
+    color: '#2873e6',
     marginLeft: 8,
   },
   searchButton: {
-    backgroundColor: '#EAB308',
+    backgroundColor: '#2873e6',
     borderRadius: 16,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#EAB308',
+    shadowColor: '#2873e6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

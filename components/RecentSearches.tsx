@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   clearButton: {
-    color: '#EAB308',
+    color: '#2873e6',
     fontWeight: '600',
     fontSize: 14,
   },

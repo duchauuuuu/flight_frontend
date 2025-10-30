@@ -56,14 +56,14 @@ export default function MyTicketsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#f9a912']}
-            tintColor="#f9a912"
+            colors={['#2873e6']}
+            tintColor="#2873e6"
           />
         }
       >
         <View style={styles.emptyState}>
           <View style={styles.iconContainer}>
-            <Icon name="airplane" size={80} color="#f9a912" />
+            <Icon name="airplane" size={80} color="#2873e6" />
           </View>
           <Text style={styles.emptyTitle}>Bạn chưa có vé nào</Text>
           <Text style={styles.emptySubtitle}>
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: '#f9a912',
+    borderBottomColor: '#2873e6',
   },
   tabText: {
     fontSize: 15,
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   tabTextActive: {
-    color: '#f9a912',
+    color: '#2873e6',
     fontWeight: '600',
   },
   content: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 120,
     height: 120,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: '#E3F2FD',
     borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
@@ -146,11 +146,11 @@ const styles = StyleSheet.create({
   refreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9a912',
+    backgroundColor: '#2873e6',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 24,
-    shadowColor: '#f9a912',
+    shadowColor: '#2873e6',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
