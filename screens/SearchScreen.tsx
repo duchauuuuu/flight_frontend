@@ -1,13 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Image } from 'react-native';
 import { Video, ResizeMode } from 'expo-av'; // Uncomment for video background
 import FlightBookingCard from '../components/FlightBookingCard';
 import RecentSearches from '../components/RecentSearches';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
+import { useAuthStore } from '../store/authStore';
+import { useNavigation } from '@react-navigation/native';
 
 export default function SearchScreen() {
-  const [userName] = useState('User');
+  const { user } = useAuthStore();
+  const navigation = useNavigation();
   const videoRef = useRef<Video>(null);
+
+  // Get last name or default to "User"
+  const lastName = user?.name?.split(' ').slice(-1)[0] || 'User';
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -40,8 +46,11 @@ export default function SearchScreen() {
               <Icon name="airplane" size={32} color="#FFFFFF" />
               <Text style={styles.logoText}>Flight</Text>
             </View>
-            <TouchableOpacity style={styles.userGreeting}>
-              <Text style={styles.greetingText}>Chào {userName}</Text>
+            <TouchableOpacity 
+              style={styles.userGreeting}
+              onPress={() => navigation.navigate('Account' as never)}
+            >
+              <Text style={styles.greetingText}>Chào {lastName}</Text>
               <Icon name="chevron-right" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>

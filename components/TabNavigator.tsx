@@ -1,13 +1,18 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { TouchableOpacity, Text, View } from 'react-native';
+import { useAuthStore } from '../store/authStore';
 
 import SearchScreen from '../screens/SearchScreen';
 import MyTicketsScreen from '../screens/MyTicketsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import AccountScreen from '../screens/AccountScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/Register';
 
 export type RootTabParamList = {
   Search: undefined;
@@ -16,7 +21,32 @@ export type RootTabParamList = {
   Account: undefined;
 };
 
+export type AccountStackParamList = {
+  AccountMain: undefined;
+  Profile: undefined;
+  Login: undefined;
+  Register: undefined;
+};
+
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const AccountStack = createNativeStackNavigator<AccountStackParamList>();
+
+function AccountStackScreen() {
+  const { isAuthenticated, user } = useAuthStore();
+  
+  return (
+    <AccountStack.Navigator 
+      key={isAuthenticated ? 'auth' : 'no-auth'}
+      screenOptions={{ headerShown: false }}
+      initialRouteName={isAuthenticated ? "AccountMain" : "Login"}
+    >
+      <AccountStack.Screen name="AccountMain" component={AccountScreen} />
+      <AccountStack.Screen name="Profile" component={ProfileScreen} />
+      <AccountStack.Screen name="Login" component={LoginScreen} />
+      <AccountStack.Screen name="Register" component={RegisterScreen} />
+    </AccountStack.Navigator>
+  );
+}
 
 export default function TabNavigator() {
   const insets = useSafeAreaInsets();
@@ -105,7 +135,7 @@ export default function TabNavigator() {
       />
       <Tab.Screen 
         name="Account" 
-        component={AccountScreen}
+        component={AccountStackScreen}
         options={{
           title: 'Tài khoản',
           tabBarLabel: 'Tài khoản',

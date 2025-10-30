@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
+import { CommonActions } from '@react-navigation/native';
+import { useAuthStore } from '../store/authStore';
 
 interface MenuItem {
   icon: keyof typeof Icon.glyphMap;
@@ -9,12 +11,14 @@ interface MenuItem {
   onPress: () => void;
 }
 
-export default function AccountScreen() {
+export default function AccountScreen({ navigation }: any) {
+  const { user, logout } = useAuthStore();
+
   const menuItems: MenuItem[] = [
     {
       icon: 'star-outline',
       title: 'Điểm thưởng của tôi',
-      badge: '666 điểm',
+      badge: `${user?.points || 0} điểm`,
       onPress: () => console.log('Điểm thưởng'),
     },
     {
@@ -56,9 +60,22 @@ export default function AccountScreen() {
     {
       icon: 'logout',
       title: 'Đăng xuất',
-      onPress: () => console.log('Đăng xuất'),
+      onPress: async () => {
+        await logout();
+        // Không reset thủ công; AccountStack sẽ remount theo isAuthenticated và tự về Login
+      },
     },
   ];
+
+  // Helper function to get initials from name
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -66,14 +83,17 @@ export default function AccountScreen() {
       <View style={styles.customHeader}>
         <View style={styles.profileSection}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>ĐH</Text>
+            <Text style={styles.avatarText}>{user ? getInitials(user.name) : 'U'}</Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>Nguyễn Đức Hậu</Text>
-            <Text style={styles.userBadge}>Thành viên Vàng</Text>
+            <Text style={styles.userName}>{user?.name || 'Người dùng'}</Text>
+            <Text style={styles.userBadge}>Thành viên {user?.membershipTier?.toLowerCase() || 'Đồng'}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.editButton}>
+        <TouchableOpacity 
+          style={styles.editButton}
+          onPress={() => navigation.navigate('Profile')}
+        >
           <View>
             <Text style={styles.editButtonText}>Chỉnh sửa</Text>
             <View style={styles.underline} />
