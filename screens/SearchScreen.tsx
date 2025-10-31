@@ -8,8 +8,8 @@ import { useAuthStore } from '../store/authStore';
 import { useNavigation } from '@react-navigation/native';
 
 export default function SearchScreen() {
-  const { user } = useAuthStore();
-  const navigation = useNavigation();
+  const { user, isAuthenticated } = useAuthStore();
+  const navigation = useNavigation<any>();
   const videoRef = useRef<Video>(null);
 
   // Get last name or default to "User"
@@ -48,9 +48,17 @@ export default function SearchScreen() {
             </View>
             <TouchableOpacity 
               style={styles.userGreeting}
-              onPress={() => navigation.navigate('Account' as never)}
+              onPress={() => {
+                if (isAuthenticated) {
+                  navigation.navigate('Account');
+                } else {
+                  navigation.navigate('Account', { screen: 'Login' });
+                }
+              }}
             >
-              <Text style={styles.greetingText}>Chào {lastName}</Text>
+              <Text style={[styles.greetingText, !isAuthenticated && styles.linkText]}>
+                {isAuthenticated ? `Chào ${lastName}` : 'Đăng nhập'}
+              </Text>
               <Icon name="chevron-right" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -123,6 +131,9 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 5,
+  },
+  linkText: {
+    textDecorationLine: 'underline',
   },
   headerTitle: {
     fontSize: 32,

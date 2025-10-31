@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image, ScrollView, ImageBackground } from 'react-native';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
 
@@ -13,8 +13,8 @@ interface LoginScreenProps {
 }
 
 export default function LoginScreen({ onClose, onGotoRegister }: LoginScreenProps) {
-  const navigation = useNavigation();
-  const { setUser, setTokens } = useAuthStore();
+  const navigation = useNavigation<any>();
+  const { setUser, setTokens, isAuthenticated } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -27,6 +27,17 @@ export default function LoginScreen({ onClose, onGotoRegister }: LoginScreenProp
     general: '',
   });
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Khi đăng nhập xong, tự động chuyển sang màn AccountMain trong AccountStack
+  useEffect(() => {
+    if (isAuthenticated) {
+      try {
+        navigation.replace('AccountMain');
+      } catch (e) {
+        navigation.getParent?.()?.navigate('Account');
+      }
+    }
+  }, [isAuthenticated]);
 
   const validateForm = () => {
     let isValid = true;
@@ -148,8 +159,12 @@ export default function LoginScreen({ onClose, onGotoRegister }: LoginScreenProp
                 if (onClose) {
                   onClose();
                 } else {
-                  // Thay thế màn hình Login bằng AccountMain trong AccountStack để tránh nhân đôi
-                  (navigation as any).replace('AccountMain');
+                  // Điều hướng ngay lập tức về AccountMain và đảm bảo đang ở tab Account
+                  const parent = navigation.getParent?.();
+                  parent?.navigate('Account');
+                  navigation.dispatch(
+                    CommonActions.reset({ index: 0, routes: [{ name: 'AccountMain' }] })
+                  );
                 }
               }
             } catch (e: any) {

@@ -50,12 +50,8 @@ export default function ProfileScreen({ navigation }: any) {
           style={styles.logoutButton}
           onPress={async () => {
             await logout();
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-              })
-            );
+            // Điều hướng trực tiếp tới tab Account -> AccountMain
+            navigation.getParent?.()?.navigate('Account', { screen: 'AccountMain' });
           }}
         >
           <View>
