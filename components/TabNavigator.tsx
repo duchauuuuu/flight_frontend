@@ -38,18 +38,23 @@ function AccountStackScreen() {
     <AccountStack.Navigator 
       key={isAuthenticated ? 'auth' : 'no-auth'}
       screenOptions={{ headerShown: false }}
-      initialRouteName={isAuthenticated ? "AccountMain" : "Login"}
+      initialRouteName={"AccountMain"}
     >
       <AccountStack.Screen name="AccountMain" component={AccountScreen} />
       <AccountStack.Screen name="Profile" component={ProfileScreen} />
-      <AccountStack.Screen name="Login" component={LoginScreen} />
-      <AccountStack.Screen name="Register" component={RegisterScreen} />
+      {!isAuthenticated && (
+        <>
+          <AccountStack.Screen name="Login" component={LoginScreen} />
+          <AccountStack.Screen name="Register" component={RegisterScreen} />
+        </>
+      )}
     </AccountStack.Navigator>
   );
 }
 
 export default function TabNavigator() {
   const insets = useSafeAreaInsets();
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <Tab.Navigator
@@ -109,19 +114,20 @@ export default function TabNavigator() {
           title: 'Vé của tôi',
           tabBarLabel: 'Vé của tôi',
           headerRight: () => (
-            <TouchableOpacity 
-              style={{ marginRight: 16, flexDirection: 'row', alignItems: 'center' }}
-              onPress={() => {
-                // This will be handled by the screen itself
-                console.log('Refresh tickets');
-              }}
-            >
-              <Icon name="refresh" size={20} color="#fff" />
-              <View style={{ marginLeft: 4 }}>
-                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '500' }}>Làm mới</Text>
-                <View style={{ height: 1.5, backgroundColor: '#fff' }} />
-              </View>
-            </TouchableOpacity>
+            isAuthenticated ? (
+              <TouchableOpacity 
+                style={{ marginRight: 16, flexDirection: 'row', alignItems: 'center' }}
+                onPress={() => {
+                  console.log('Refresh tickets');
+                }}
+              >
+                <Icon name="refresh" size={20} color="#fff" />
+                <View style={{ marginLeft: 4 }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '500' }}>Làm mới</Text>
+                  <View style={{ height: 1.5, backgroundColor: '#fff' }} />
+                </View>
+              </TouchableOpacity>
+            ) : null
           ),
         }}
       />

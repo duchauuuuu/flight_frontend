@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
+import { useAuthStore } from '../store/authStore';
+import { useNavigation } from '@react-navigation/native';
 
 export default function MyTicketsScreen() {
   const [activeTab, setActiveTab] = useState<'current' | 'past' | 'cancelled'>('current');
   const [refreshing, setRefreshing] = useState(false);
+  const { isAuthenticated } = useAuthStore();
+  const navigation = useNavigation<any>();
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -53,23 +57,45 @@ export default function MyTicketsScreen() {
         style={styles.content} 
         contentContainerStyle={styles.contentContainer}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#2873e6']}
-            tintColor="#2873e6"
-          />
+          isAuthenticated
+            ? (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#2873e6']}
+                tintColor="#2873e6"
+              />
+            )
+            : undefined
         }
       >
-        <View style={styles.emptyState}>
-          <View style={styles.iconContainer}>
-            <Icon name="airplane" size={80} color="#2873e6" />
+        {!isAuthenticated ? (
+          <View style={styles.authCardWrap}>
+            <View style={styles.authCard}>
+              <Icon name="account-circle" size={72} color="#9CA3AF" />
+              <Text style={styles.authTitle}>Bạn chưa đăng nhập</Text>
+              <Text style={styles.authSubtitle}>
+                Đăng nhập để xem lịch sử vé, kiểm tra trạng thái và hủy chuyến khi cần
+              </Text>
+              <TouchableOpacity
+                style={styles.loginBtn}
+                onPress={() => navigation.navigate('Account', { screen: 'Login' })}
+              >
+                <Text style={styles.loginText}>Đăng nhập</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.emptyTitle}>Bạn chưa có vé nào</Text>
-          <Text style={styles.emptySubtitle}>
-            Hãy thử kéo xuống để cập nhật danh sách vé trong 3 tháng gần nhất
-          </Text>
-        </View>
+        ) : (
+          <View style={styles.emptyState}>
+            <View style={styles.iconContainer}>
+              <Icon name="airplane" size={80} color="#2873e6" />
+            </View>
+            <Text style={styles.emptyTitle}>Bạn chưa có vé nào</Text>
+            <Text style={styles.emptySubtitle}>
+              Hãy thử kéo xuống để cập nhật danh sách vé trong 3 tháng gần nhất
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -113,6 +139,43 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
+  },
+  authCardWrap: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  authCard: {
+    width: '84%',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+  },
+  authTitle: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  authSubtitle: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  loginBtn: {
+    marginTop: 16,
+    backgroundColor: '#0f3c89',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  loginText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
   },
   emptyState: {
     alignItems: 'center',

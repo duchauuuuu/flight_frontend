@@ -12,9 +12,9 @@ interface MenuItem {
 }
 
 export default function AccountScreen({ navigation }: any) {
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated } = useAuthStore();
 
-  const menuItems: MenuItem[] = [
+  const menuItemsBase: MenuItem[] = [
     {
       icon: 'star-outline',
       title: 'Điểm thưởng của tôi',
@@ -57,15 +57,36 @@ export default function AccountScreen({ navigation }: any) {
       title: 'Góp ý',
       onPress: () => console.log('Góp ý'),
     },
-    {
-      icon: 'logout',
-      title: 'Đăng xuất',
-      onPress: async () => {
-        await logout();
-        // Không reset thủ công; AccountStack sẽ remount theo isAuthenticated và tự về Login
-      },
-    },
   ];
+
+  const menuItems: MenuItem[] = isAuthenticated
+    ? [
+        ...menuItemsBase,
+        {
+          icon: 'logout',
+          title: 'Đăng xuất',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ]
+    : menuItemsBase;
+
+  const authRequiredTitles = new Set<string>([
+    'Điểm thưởng của tôi',
+    'Ưu đãi',
+    'Giới thiệu nhận quà',
+    'Quản lý thẻ',
+    'Đánh giá chuyến đi',
+  ]);
+
+  const wrapOnPress = (item: MenuItem) => () => {
+    if (!isAuthenticated && authRequiredTitles.has(item.title)) {
+      navigation.navigate('Login');
+      return;
+    }
+    item.onPress();
+  };
 
   // Helper function to get initials from name
   const getInitials = (name: string) => {
@@ -92,10 +113,10 @@ export default function AccountScreen({ navigation }: any) {
         </View>
         <TouchableOpacity 
           style={styles.editButton}
-          onPress={() => navigation.navigate('Profile')}
+          onPress={() => navigation.navigate(isAuthenticated ? 'Profile' : 'Login')}
         >
           <View>
-            <Text style={styles.editButtonText}>Chỉnh sửa</Text>
+            <Text style={styles.editButtonText}>{isAuthenticated ? 'Chỉnh sửa' : 'Đăng nhập'}</Text>
             <View style={styles.underline} />
           </View>
         </TouchableOpacity>
@@ -108,7 +129,7 @@ export default function AccountScreen({ navigation }: any) {
           <TouchableOpacity
             key={index}
             style={styles.menuItem}
-            onPress={item.onPress}
+            onPress={wrapOnPress(item)}
           >
             <View style={styles.menuLeft}>
               <Icon name={item.icon} size={24} color="#2873e6" />
@@ -129,7 +150,11 @@ export default function AccountScreen({ navigation }: any) {
                   </Text>
                 </View>
               )}
-              <Icon name="chevron-right" size={20} color="#BDBDBD" />
+              <Icon
+                name={!isAuthenticated && authRequiredTitles.has(item.title) ? 'lock' : 'chevron-right'}
+                size={20}
+                color="#BDBDBD"
+              />
             </View>
           </TouchableOpacity>
         ))}
@@ -150,7 +175,7 @@ export default function AccountScreen({ navigation }: any) {
           <TouchableOpacity
             key={index + 3}
             style={styles.menuItem}
-            onPress={item.onPress}
+            onPress={wrapOnPress(item)}
           >
             <View style={styles.menuLeft}>
               <Icon name={item.icon} size={24} color="#2873e6" />
@@ -171,7 +196,11 @@ export default function AccountScreen({ navigation }: any) {
                   </Text>
                 </View>
               )}
-              <Icon name="chevron-right" size={20} color="#BDBDBD" />
+              <Icon
+                name={!isAuthenticated && authRequiredTitles.has(item.title) ? 'lock' : 'chevron-right'}
+                size={20}
+                color="#BDBDBD"
+              />
             </View>
           </TouchableOpacity>
         ))}
