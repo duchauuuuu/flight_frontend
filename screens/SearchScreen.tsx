@@ -1,19 +1,34 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Image } from 'react-native';
 import { Video, ResizeMode } from 'expo-av'; // Uncomment for video background
 import FlightBookingCard from '../components/FlightBookingCard';
 import RecentSearches from '../components/RecentSearches';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { Airport } from '../types/airport';
 
 export default function SearchScreen() {
   const { user, isAuthenticated } = useAuthStore();
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const videoRef = useRef<Video>(null);
+  const [airportData, setAirportData] = useState<{ airportType?: string; airport?: Airport } | null>(null);
 
   // Get last name or default to "User"
   const lastName = user?.name?.split(' ').slice(-1)[0] || 'User';
+
+  useEffect(() => {
+    if (route.params?.airportType && route.params?.airport) {
+      setAirportData({
+        airportType: route.params.airportType,
+        airport: route.params.airport,
+      });
+      // Clear params after handling to avoid duplicate updates
+      // Note: FlightBookingCard also handles route.params directly, so this is a backup
+      navigation.setParams({ airportType: undefined, airport: undefined });
+    }
+  }, [route.params, navigation]);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -68,7 +83,7 @@ export default function SearchScreen() {
       {/* Main Content */}
       <View style={styles.mainContent}>
         {/* Booking Card */}
-        <FlightBookingCard />
+        <FlightBookingCard airportData={airportData} />
 
         {/* Recent Searches */}
         <RecentSearches />
