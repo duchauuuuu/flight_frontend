@@ -1,12 +1,17 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { TouchableOpacity, Text, View } from 'react-native';
 import { useAuthStore } from '../store/authStore';
 
 import SearchScreen from '../screens/SearchScreen';
+import ResultsScreen from '../screens/ResultsScreen';
+import ResultsLoadingScreen from '../screens/ResultsLoadingScreen';
+import AirportsScreen from '../screens/AirportsScreen';
+import DatePickerScreen from '../screens/DatePickerScreen';
 import MyTicketsScreen from '../screens/MyTicketsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import AccountScreen from '../screens/AccountScreen';
@@ -28,8 +33,17 @@ export type AccountStackParamList = {
   Register: undefined;
 };
 
+export type SearchStackParamList = {
+  SearchMain: undefined;
+  Airports: { type: 'departure' | 'arrival' };
+  DatePicker: { type: 'departure' | 'return' };
+  ResultsLoading: { from: string; to: string; date: string; passengers: number; seatClass: string };
+  Results: { from: string; to: string; date: string; passengers: number; seatClass: string };
+};
+
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const AccountStack = createNativeStackNavigator<AccountStackParamList>();
+const SearchStack = createNativeStackNavigator<SearchStackParamList>();
 
 function AccountStackScreen() {
   const { isAuthenticated, user } = useAuthStore();
@@ -49,6 +63,22 @@ function AccountStackScreen() {
         </>
       )}
     </AccountStack.Navigator>
+  );
+}
+
+function SearchStackScreen() {
+  return (
+    <SearchStack.Navigator screenOptions={{ headerShown: false }}>
+      <SearchStack.Screen name="SearchMain" component={SearchScreen} />
+      <SearchStack.Screen name="Airports" component={AirportsScreen} />
+      <SearchStack.Screen name="DatePicker" component={DatePickerScreen} />
+      <SearchStack.Screen name="ResultsLoading" component={ResultsLoadingScreen} options={{ headerShown: false }} />
+      <SearchStack.Screen 
+        name="Results" 
+        component={ResultsScreen}
+        options={{ headerShown: false }}
+      />
+    </SearchStack.Navigator>
   );
 }
 
@@ -100,11 +130,16 @@ export default function TabNavigator() {
     >
       <Tab.Screen 
         name="Search" 
-        component={SearchScreen}
-        options={{
-          title: 'Tìm kiếm',
-          tabBarLabel: 'Tìm kiếm',
-          headerShown: false,
+        component={SearchStackScreen}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? 'SearchMain';
+          
+          return {
+            title: 'Tìm kiếm',
+            tabBarLabel: 'Tìm kiếm',
+            headerShown: false,
+            tabBarStyle: (routeName === 'Results' || routeName === 'ResultsLoading') ? { display: 'none' } : undefined,
+          };
         }}
       />
       <Tab.Screen 
