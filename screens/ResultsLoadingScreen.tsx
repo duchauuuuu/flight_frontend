@@ -43,7 +43,7 @@ export default function ResultsLoadingScreen() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground source={require('../assets/bg-loading-timKiem.jpg')} style={styles.backgroundImage} blurRadius={10}>
+      <ImageBackground source={require('../assets/bg-loading-timKiem.jpg')} style={styles.backgroundImage} blurRadius={2}>
         <View style={styles.overlay}>
           <View style={[styles.header, { paddingTop: Math.max(20, insets.top + 8), paddingBottom: 12 }]}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -86,7 +86,7 @@ export default function ResultsLoadingScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   backgroundImage: { flex: 1, resizeMode: 'cover' },
-  overlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.4)', justifyContent: 'space-between' },
+  overlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.1)', justifyContent: 'space-between' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 20 },
   headerCenter: { alignItems: 'center', flex: 1 },
   headerRoute: { fontSize: 18, fontWeight: 'bold', color: '#fff', marginBottom: 4 },
