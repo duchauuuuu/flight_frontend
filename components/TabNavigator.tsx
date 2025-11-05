@@ -10,6 +10,7 @@ import { useAuthStore } from '../store/authStore';
 import SearchScreen from '../screens/SearchScreen';
 import ResultsScreen from '../screens/ResultsScreen';
 import ResultsLoadingScreen from '../screens/ResultsLoadingScreen';
+import PassengerInfoScreen from '../screens/PassengerInfoScreen';
 import AirportsScreen from '../screens/AirportsScreen';
 import DatePickerScreen from '../screens/DatePickerScreen';
 import MyTicketsScreen from '../screens/MyTicketsScreen';
@@ -39,6 +40,7 @@ export type SearchStackParamList = {
   DatePicker: { type: 'departure' | 'return' };
   ResultsLoading: { from: string; to: string; date: string; passengers: number; seatClass: string };
   Results: { from: string; to: string; date: string; passengers: number; seatClass: string };
+  PassengerInfo: { flight: any; passengers?: number; pricing?: { base: number; taxesAndFees?: number; total: number } };
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -76,6 +78,11 @@ function SearchStackScreen() {
       <SearchStack.Screen 
         name="Results" 
         component={ResultsScreen}
+        options={{ headerShown: false }}
+      />
+      <SearchStack.Screen 
+        name="PassengerInfo" 
+        component={PassengerInfoScreen}
         options={{ headerShown: false }}
       />
     </SearchStack.Navigator>
@@ -138,7 +145,7 @@ export default function TabNavigator() {
             title: 'Tìm kiếm',
             tabBarLabel: 'Tìm kiếm',
             headerShown: false,
-            tabBarStyle: (routeName === 'Results' || routeName === 'ResultsLoading') ? { display: 'none' } : undefined,
+            tabBarStyle: (routeName === 'Results' || routeName === 'ResultsLoading' || routeName === 'PassengerInfo') ? { display: 'none' } : undefined,
           };
         }}
       />
