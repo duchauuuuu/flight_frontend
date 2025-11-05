@@ -1,12 +1,6 @@
 export interface Traveller {
   type: string;
-  firstName: string;
-  lastName: string;
-  gender: string;
-  seat?: string;
-  cabinClass: string;
-  cabinBags?: string;
-  checkedBags?: string;
+  name: string;
 }
 
 export interface ContactDetails {
@@ -17,13 +11,14 @@ export interface ContactDetails {
 export interface Payment {
   method: string;
   amount: number;
-  paidAt: Date;
+  paidAt: string | Date;
 }
 
 export interface Booking {
   _id?: string;
+  bookingCode?: string;
   userId: string;
-  flightIds: string[];
+  flightIds: Array<string | any>; // có thể được populate từ BE
   tripType: string;
   travellerCounts: {
     adults: number;

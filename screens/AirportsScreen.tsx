@@ -20,36 +20,47 @@ export default function AirportsScreen() {
   const [filteredAirports, setFilteredAirports] = useState<Airport[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load airports from BE mock API (axios)
+  // Load airports từ BE thật (sau khi đã seed)
   useEffect(() => {
     const fetchAirports = async () => {
       try {
         setLoading(true);
-        if (API_BASE_URL) {
-          const { data } = await axios.get(`${API_BASE_URL}/airports/mock`);
+        if (!API_BASE_URL) {
+          console.error('API_BASE_URL chưa được cấu hình');
+          setAirports([]);
+          setFilteredAirports([]);
+          return;
+        }
+
+        // Gọi endpoint thật từ DB (sau khi đã seed)
+        const { data } = await axios.get(`${API_BASE_URL}/airports`);
+        
+        if (Array.isArray(data) && data.length > 0) {
           setAirports(data);
           setFilteredAirports(data);
         } else {
-          // No API base configured → use fallback
-          throw new Error('API base URL not configured');
+          console.warn('Không có dữ liệu airports. Bạn đã gọi POST /seed để tạo dữ liệu chưa?');
+          setAirports([]);
+          setFilteredAirports([]);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching airports:', error);
-        // Fallback to hardcoded data if API fails
-        const fallbackAirports: Airport[] = [
-          { code: 'SGN', name: 'Sân bay quốc tế Tân Sơn Nhất', city: 'TP Hồ Chí Minh', country: 'Việt Nam' },
-          { code: 'HAN', name: 'Sân bay quốc tế Nội Bài', city: 'Hà Nội', country: 'Việt Nam' },
-          { code: 'DAD', name: 'Sân bay quốc tế Đà Nẵng', city: 'Đà Nẵng', country: 'Việt Nam' },
-          { code: 'CXR', name: 'Sân bay quốc tế Cam Ranh', city: 'Nha Trang', country: 'Việt Nam' },
-          { code: 'HPH', name: 'Sân bay quốc tế Cát Bi', city: 'Hải Phòng', country: 'Việt Nam' },
-          { code: 'BMV', name: 'Sân bay Buôn Ma Thuột', city: 'Buôn Ma Thuột', country: 'Việt Nam' },
-          { code: 'CAH', name: 'Sân bay Cà Mau', city: 'Cà Mau', country: 'Việt Nam' },
-          { code: 'VCA', name: 'Sân bay quốc tế Cần Thơ', city: 'Cần Thơ', country: 'Việt Nam' },
-          { code: 'VCL', name: 'Sân bay Chu Lai', city: 'Chu Lai', country: 'Việt Nam' },
-          { code: 'VCS', name: 'Sân bay Côn Đảo', city: 'Côn Đảo', country: 'Việt Nam' },
-        ];
-        setAirports(fallbackAirports);
-        setFilteredAirports(fallbackAirports);
+        console.error('Chi tiết lỗi:', {
+          message: error?.message,
+          status: error?.response?.status,
+          url: error?.config?.url,
+        });
+        
+        // Nếu lỗi, thử fallback về mock endpoint
+        try {
+          const { data } = await axios.get(`${API_BASE_URL}/airports/mock`);
+          setAirports(Array.isArray(data) ? data : []);
+          setFilteredAirports(Array.isArray(data) ? data : []);
+        } catch (fallbackError) {
+          console.error('Fallback cũng lỗi:', fallbackError);
+          setAirports([]);
+          setFilteredAirports([]);
+        }
       } finally {
         setLoading(false);
       }

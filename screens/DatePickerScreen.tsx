@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -20,43 +20,165 @@ export default function DatePickerScreen() {
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   
-  const { type, mode, flightIndex } = route.params || { type: 'departure' };
+  const { type, mode, flightIndex, currentDate, onDateSelected } = route.params || { type: 'departure' };
   
-  const [selectedDate, setSelectedDate] = useState('2025-11-05');
-  
-  const handleDateConfirm = () => {
-    if (mode === 'multicity' && typeof flightIndex === 'number') {
-      navigation.navigate('Search', {
-        mode: 'multicity',
-        flightIndex: flightIndex,
-        selectedDate: selectedDate,
-        dateType: type,
-      });
-    } else {
-      navigation.navigate('Search', {
-        selectedDate: selectedDate,
-        dateType: type,
-      });
+  // Parse current date to ISO format if provided
+  const parseCurrentDate = (dateStr?: string): string => {
+    if (!dateStr) {
+      const today = new Date().toISOString().split('T')[0];
+      console.log('📅 [DatePicker] No currentDate provided, using today:', today);
+      return today;
     }
+    try {
+      // If already ISO format
+      if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+        const isoDate = dateStr.slice(0, 10);
+        console.log('📅 [DatePicker] currentDate is already ISO format:', isoDate);
+        return isoDate;
+      }
+      // If display format like "6 Thg 11, 2025" or "29 Thg 10, 2025"
+      const cleaned = String(dateStr).replace(',', '').trim();
+      const parts = cleaned.split(' ').filter(Boolean);
+      console.log('📅 [DatePicker] Parsing display format:', dateStr, 'parts:', parts);
+      if (parts.length >= 4) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[2], 10);
+        const year = parseInt(parts[3], 10);
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          const mm = String(month).padStart(2, '0');
+          const dd = String(day).padStart(2, '0');
+          const isoDate = `${year}-${mm}-${dd}`;
+          console.log('📅 [DatePicker] Parsed to ISO format:', isoDate);
+          return isoDate;
+        }
+      }
+    } catch (error) {
+      console.error('📅 [DatePicker] Error parsing date:', error);
+    }
+    const today = new Date().toISOString().split('T')[0];
+    console.log('📅 [DatePicker] Parse failed, using today:', today);
+    return today;
   };
+  
+  // Get today's date first (before parsing currentDate) - use local time
+  const getTodayISO = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
+  const todayISO = getTodayISO();
+  
+  const initialDate = parseCurrentDate(currentDate);
+  // Ensure initialDate is not in the past
+  const validInitialDate = initialDate >= todayISO ? initialDate : todayISO;
+  console.log('📅 [DatePicker] ========== INITIALIZATION ==========');
+  console.log('📅 [DatePicker] Initial date:', initialDate, 'from currentDate:', currentDate);
+  console.log('📅 [DatePicker] todayISO:', todayISO);
+  console.log('📅 [DatePicker] validInitialDate:', validInitialDate);
+  const [selectedDate, setSelectedDate] = useState(validInitialDate);
   
   const formatDisplayDate = (dateString: string) => {
     const date = new Date(dateString);
-    const dayNames = ['CN', 'Th 2', 'Th 3', 'Th 4', 'Th 5', 'Th 6', 'Th 7'];
-    const dayOfWeek = dayNames[date.getDay()];
     const day = date.getDate();
-    const month = date.getMonth() + 1;
+    const month = date.toLocaleString('vi-VN', { month: 'short' });
     const year = date.getFullYear();
-    return `${dayOfWeek} - ${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+    return `${day} ${month}, ${year}`;
   };
   
-  const markedDates = {
-    [selectedDate]: {
+  const handleDateConfirm = () => {
+    // Ensure we're confirming a valid date (today or future)
+    // Use validSelectedDate to ensure it's not in the past
+    // Note: todayISOForMinDate is defined in the render scope, so we need to recalculate it here
+    const todayForConfirm = new Date();
+    const yearConfirm = todayForConfirm.getFullYear();
+    const monthConfirm = String(todayForConfirm.getMonth() + 1).padStart(2, '0');
+    const dayConfirm = String(todayForConfirm.getDate()).padStart(2, '0');
+    const todayISOConfirm = `${yearConfirm}-${monthConfirm}-${dayConfirm}`;
+    
+    const dateToConfirm = validSelectedDate >= todayISOConfirm ? validSelectedDate : todayISOConfirm;
+    console.log('📅 [DatePicker] Confirming date:', dateToConfirm, 'validSelectedDate:', validSelectedDate, 'todayISOConfirm:', todayISOConfirm);
+    const displayDate = formatDisplayDate(dateToConfirm);
+    
+    if (onDateSelected && typeof onDateSelected === 'function') {
+      // Call callback if provided (from ResultsScreen)
+      onDateSelected(displayDate);
+      navigation.goBack();
+    } else if (mode === 'multicity' && typeof flightIndex === 'number') {
+      // Navigate to SearchMain screen with params
+      navigation.navigate('Search' as never, {
+        screen: 'SearchMain',
+        params: {
+          mode: 'multicity',
+          flightIndex: flightIndex,
+          selectedDate: displayDate,
+          dateType: type,
+        },
+        merge: true as any,
+      } as never);
+    } else {
+      // Navigate to SearchMain screen with params
+      navigation.navigate('Search' as never, {
+        screen: 'SearchMain',
+        params: {
+          selectedDate: displayDate,
+          dateType: type,
+        },
+        merge: true as any,
+      } as never);
+    }
+  };
+  
+  // Recalculate todayISO in render (to ensure it's always current)
+  // But we'll use the same value calculated above to avoid recalculation
+  const todayISOForMinDate = todayISO; // Use the same value
+  
+  console.log('📅 [DatePicker] ========== RENDER ==========');
+  console.log('📅 [DatePicker] todayISOForMinDate:', todayISOForMinDate);
+  console.log('📅 [DatePicker] selectedDate:', selectedDate);
+  
+  // Ensure selectedDate is not in the past - if it is, use today
+  // Use useEffect to update selectedDate if it's in the past
+  useEffect(() => {
+    const currentTodayISO = getTodayISO();
+    if (selectedDate < currentTodayISO) {
+      console.log('📅 [DatePicker] ⚠️ selectedDate is in the past, resetting to today');
+      console.log('📅 [DatePicker] selectedDate:', selectedDate, 'currentTodayISO:', currentTodayISO);
+      setSelectedDate(currentTodayISO);
+    }
+  }, [selectedDate]);
+  
+  // Use valid selected date (today or in the future)
+  const validSelectedDate = selectedDate >= todayISOForMinDate ? selectedDate : todayISOForMinDate;
+  
+  // Mark selected date (only if it's today or in the future and actually selected)
+  const markedDates: any = {};
+  
+  // Only mark the date that user explicitly selected (from today onwards)
+  // Don't mark based on 'current' prop - that's just for navigation
+  // IMPORTANT: Only mark if selectedDate is actually >= todayISOForMinDate
+  // Do NOT mark today automatically - only mark if user selected it
+  if (selectedDate >= todayISOForMinDate) {
+    // Only mark this specific date that user selected
+    markedDates[selectedDate] = {
       selected: true,
       selectedColor: '#2873e6',
       selectedTextColor: '#fff',
-    },
-  };
+    };
+    console.log('📅 [DatePicker] ✅ Marking date as selected:', selectedDate);
+  } else {
+    console.log('📅 [DatePicker] ❌ Not marking date - selectedDate:', selectedDate, 'is in the past (todayISOForMinDate:', todayISOForMinDate, ')');
+  }
+  
+  // Ensure no past dates are marked
+  // Past dates should be disabled by minDate automatically
+  
+  console.log('📅 [DatePicker] markedDates:', markedDates);
+  console.log('📅 [DatePicker] selectedDate:', selectedDate);
+  console.log('📅 [DatePicker] validSelectedDate:', validSelectedDate);
+  console.log('📅 [DatePicker] todayISOForMinDate:', todayISOForMinDate);
   
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -72,25 +194,57 @@ export default function DatePickerScreen() {
       {/* Current Date Display */}
       <View style={styles.currentDateSection}>
         <Text style={styles.currentDateLabel}>{type === 'departure' ? 'Ngày đi' : 'Ngày về'}</Text>
-        <Text style={styles.currentDate}>{formatDisplayDate(selectedDate)}</Text>
+        <Text style={styles.currentDate}>{formatDisplayDate(validSelectedDate)}</Text>
       </View>
 
       {/* Calendar */}
       <ScrollView style={styles.calendarContainer}>
         <Calendar
-          current={selectedDate}
-          minDate={new Date().toISOString().split('T')[0]}
+          current={todayISOForMinDate}
+          minDate={todayISOForMinDate}
+          maxDate="2030-12-31"
           markedDates={markedDates}
+          hideExtraDays={true}
+          firstDay={1}
           onDayPress={(day) => {
-            setSelectedDate(day.dateString);
+            console.log('📅 [DatePicker] ========== Day pressed ==========');
+            console.log('📅 [DatePicker] Day pressed:', day.dateString);
+            console.log('📅 [DatePicker] todayISOForMinDate:', todayISOForMinDate);
+            console.log('📅 [DatePicker] Comparison:', day.dateString, '>=', todayISOForMinDate, '=', day.dateString >= todayISOForMinDate);
+            console.log('📅 [DatePicker] Current selectedDate:', selectedDate);
+            
+            // Recalculate today to ensure we're using current date
+            const currentTodayISO = getTodayISO();
+            
+            // Only allow selecting dates from today onwards
+            // Strictly enforce this - reject any past dates
+            if (day.dateString >= currentTodayISO) {
+              console.log('📅 [DatePicker] ✅ Valid date (today or future), setting selectedDate to:', day.dateString);
+              setSelectedDate(day.dateString);
+            } else {
+              console.log('📅 [DatePicker] ❌ Cannot select past date:', day.dateString, 'today is:', currentTodayISO);
+              console.log('📅 [DatePicker] ❌ Rejected - keeping current selectedDate:', selectedDate);
+              // Explicitly do nothing - don't change selectedDate
+              return;
+            }
           }}
+          onDayLongPress={(day) => {
+            // Prevent long press on past dates
+            const currentTodayISO = getTodayISO();
+            if (day.dateString < currentTodayISO) {
+              return;
+            }
+          }}
+          disabledDaysIndexes={[]}
+          disableAllTouchEventsForDisabledDays={true}
+          enableSwipeMonths={true}
           theme={{
             backgroundColor: '#ffffff',
             calendarBackground: '#ffffff',
             textSectionTitleColor: '#6B7280',
             selectedDayBackgroundColor: '#2873e6',
             selectedDayTextColor: '#ffffff',
-            todayTextColor: '#2873e6',
+            todayTextColor: '#1F2937',
             dayTextColor: '#1F2937',
             textDisabledColor: '#D1D5DB',
             dotColor: '#2873e6',

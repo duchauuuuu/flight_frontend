@@ -26,7 +26,8 @@ export default function ProfileScreen({ navigation }: any) {
   }, [user]);
 
   // Helper function to get initials from name
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string | null) => {
+    if (!name || typeof name !== 'string') return 'U';
     return name
       .split(' ')
       .map(word => word[0])

@@ -5,12 +5,9 @@ import { useNavigation, CommonActions } from '@react-navigation/native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
 
-const API_BASE = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+import { LoginScreenProps } from '../types/screen-props';
 
-interface LoginScreenProps {
-  onClose?: () => void;
-  onGotoRegister?: () => void;
-}
+const API_BASE = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
 export default function LoginScreen({ onClose, onGotoRegister }: LoginScreenProps) {
   const navigation = useNavigation<any>();
@@ -151,8 +148,23 @@ export default function LoginScreen({ onClose, onGotoRegister }: LoginScreenProp
               
               // Lưu token và user info vào Zustand store
               if (response.data.access_token && response.data.user) {
+                console.log('Login response user:', response.data.user);
+                console.log('User name field:', response.data.user.name);
+                
+                // Đảm bảo lưu đúng user object với field name
+                const userData = {
+                  _id: response.data.user._id,
+                  name: response.data.user.name || '',
+                  email: response.data.user.email,
+                  phone: response.data.user.phone || '',
+                  dob: response.data.user.dob || '',
+                  points: response.data.user.points || 0,
+                  membershipTier: response.data.user.membershipTier,
+                  role: response.data.user.role || 'Customer',
+                };
+                
                 await setTokens(response.data.access_token, response.data.refresh_token);
-                await setUser(response.data.user);
+                await setUser(userData);
                 
                 setSuccessMessage('Đăng nhập thành công!');
                 setErrors({...errors, general: ''});

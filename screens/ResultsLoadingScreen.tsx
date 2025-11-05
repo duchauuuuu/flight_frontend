@@ -3,43 +3,239 @@ import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Animated } f
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import axios from 'axios';
+import { Flight } from '../types/flight';
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_API_URL;
 
 export default function ResultsLoadingScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
 
-  const { from, to, date, passengers, seatClass } = route.params || {};
+  const params = route.params || {};
+  const { from, to, date, passengers, seatClass, tripType, flights: flightsSegments } = params;
 
   const progressValue = useRef(new Animated.Value(0)).current;
-  const [percentText, setPercentText] = useState('0%');
+  const [searchProgress, setSearchProgress] = useState(0);
+  
+  const isMulticity = tripType === 'multicity' && flightsSegments && Array.isArray(flightsSegments);
 
+  // Convert display date to ISO format
+  const toISODateFromDisplay = (display?: string | null): string => {
+    if (!display || typeof display !== 'string') {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    }
+    try {
+      if (/^\d{4}-\d{2}-\d{2}/.test(display)) {
+        return display.slice(0, 10);
+      }
+      const cleaned = String(display).replace(',', '');
+      if (!cleaned || typeof cleaned !== 'string') {
+        return new Date().toISOString().split('T')[0];
+      }
+      const parts = cleaned.split(' ').filter(Boolean);
+      if (parts.length >= 4) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[2], 10);
+        const year = parseInt(parts[3], 10);
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          const mm = String(month).padStart(2, '0');
+          const dd = String(day).padStart(2, '0');
+          return `${year}-${mm}-${dd}`;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing date:', error);
+    }
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // Animation for progress bar - sync with actual search progress
   useEffect(() => {
-    const animate = () => {
-      Animated.sequence([
-        Animated.timing(progressValue, { toValue: 1, duration: 2000, useNativeDriver: false }),
-        Animated.timing(progressValue, { toValue: 0, duration: 0, useNativeDriver: false }),
-      ]).start(() => animate());
+    // Animate progress bar to match searchProgress
+    Animated.timing(progressValue, {
+      toValue: searchProgress / 100,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [searchProgress]);
+
+  // Search flights from BE
+  useEffect(() => {
+    const searchFlights = async () => {
+      try {
+        setSearchProgress(0);
+        console.log('🔍 [RESULTS LOADING] Starting flight search');
+        console.log('🔍 [RESULTS LOADING] Is multicity:', isMulticity);
+        
+        if (!API_BASE_URL) throw new Error('API base URL not configured');
+
+        // Xử lý multicity search
+        if (isMulticity) {
+          console.log('🟣 [RESULTS LOADING] Multicity search');
+          console.log('🟣 [RESULTS LOADING] Segments:', flightsSegments);
+          
+          setSearchProgress(10);
+          
+          // Convert segments to API format
+          const segments = flightsSegments.map((f: any) => ({
+            from: f.departure,
+            to: f.arrival,
+            date: toISODateFromDisplay(f.date),
+          }));
+          
+          console.log('🟣 [RESULTS LOADING] API segments:', segments);
+          
+          setSearchProgress(30);
+          
+          // Call multicity search API
+          const requestBody = {
+            segments,
+            cabinClass: seatClass,
+            passengers: passengers,
+          };
+          
+          console.log('🟣 [RESULTS LOADING] Request body:', JSON.stringify(requestBody, null, 2));
+          
+          const { data } = await axios.post(`${API_BASE_URL}/flights/search-multicity`, requestBody);
+          
+          console.log('🟣 [RESULTS LOADING] Response:', data);
+          console.log('🟣 [RESULTS LOADING] Response type:', Array.isArray(data) ? 'array' : typeof data);
+          console.log('🟣 [RESULTS LOADING] Response length:', Array.isArray(data) ? data.length : 'not array');
+          
+          setSearchProgress(80);
+          
+          // Map response to Flight[][]
+          const allFlights: Flight[][] = (Array.isArray(data) ? data : []).map((segmentFlights: any[]) => {
+            return (Array.isArray(segmentFlights) ? segmentFlights : []).map((f: any) => ({
+              flightNumber: f.flightNumber,
+              from: f.from,
+              to: f.to,
+              departure: f.departure,
+              arrival: f.arrival,
+              price: f.price,
+              stops: f.stops ?? 0,
+              airline: f.airline,
+              availableCabins: f.availableCabins ?? ['Economy'],
+              seatsAvailable: f.seatsAvailable ?? { Economy: 50 },
+            }));
+          });
+          
+          console.log('🟣 [RESULTS LOADING] Mapped flights:', allFlights.map((f, i) => `Segment ${i + 1}: ${f.length} flights`).join(', '));
+          
+          setSearchProgress(100);
+          
+          // Navigate to Results screen with multicity data
+          // Note: Results screen chưa hỗ trợ multicity, cần flatten hoặc xử lý riêng
+          const flattenedFlights = allFlights.flat();
+          console.log('🟣 [RESULTS LOADING] Flattened flights:', flattenedFlights.length);
+          
+          setTimeout(() => {
+            navigation.replace('Results', { 
+              from: flightsSegments[0]?.departure || '',
+              to: flightsSegments[flightsSegments.length - 1]?.arrival || '',
+              date: flightsSegments[0]?.date || '',
+              passengers, 
+              seatClass,
+              flights: flattenedFlights,
+              multicityResults: allFlights, // Pass original structure for future use
+            });
+          }, 300);
+          
+          return;
+        }
+        
+        // Xử lý single/round trip search
+        console.log('🔵 [RESULTS LOADING] Single/Round trip search');
+        console.log('🔵 [RESULTS LOADING] From:', from, 'To:', to, 'Date:', date);
+        
+        // Convert display date to ISO format for API
+        const isoDate = toISODateFromDisplay(date);
+
+        setSearchProgress(30);
+
+        // Build query params
+        const queryParams = new URLSearchParams();
+        if (from) queryParams.append('from', from);
+        if (to) queryParams.append('to', to);
+        if (isoDate) {
+          queryParams.append('date', isoDate);
+          console.log('📅 [RESULTS LOADING] Searching with date:', {
+            original: date,
+            isoDate: isoDate,
+          });
+        }
+        if (seatClass) {
+          queryParams.append('cabinClass', seatClass);
+        }
+        if (passengers) {
+          queryParams.append('passengers', String(passengers));
+        }
+        
+        setSearchProgress(50);
+
+        // Call real search API (BE seed data) - backend will filter by cabinClass and passengers
+        console.log('🔵 [RESULTS LOADING] Calling API:', `${API_BASE_URL}/flights/search?${queryParams.toString()}`);
+        const { data } = await axios.get(`${API_BASE_URL}/flights/search?${queryParams.toString()}`);
+        
+        console.log('🔵 [RESULTS LOADING] API response:', data);
+        console.log('🔵 [RESULTS LOADING] Response length:', Array.isArray(data) ? data.length : 'not array');
+
+        setSearchProgress(80);
+
+        // BE đã trả đúng schema và đã filter; chỉ ép kiểu về FE type
+        const mappedFlights: Flight[] = (Array.isArray(data) ? data : []).map((f: any) => ({
+          flightNumber: f.flightNumber,
+          from: f.from,
+          to: f.to,
+          departure: f.departure,
+          arrival: f.arrival,
+          price: f.price,
+          stops: f.stops ?? 0,
+          airline: f.airline,
+          availableCabins: f.availableCabins ?? ['Economy'],
+          seatsAvailable: f.seatsAvailable ?? { Economy: 50 },
+        }));
+        
+        console.log('🔵 [RESULTS LOADING] Mapped flights:', mappedFlights.length);
+        
+        // Backend đã filter theo cabinClass và passengers, không cần filter lại ở FE
+        const filtered = mappedFlights;
+
+        setSearchProgress(100);
+
+        // Navigate to Results screen with fetched data
+        setTimeout(() => {
+          navigation.replace('Results', { 
+            from, 
+            to, 
+            date, 
+            passengers, 
+            seatClass,
+            flights: filtered.length ? filtered : mappedFlights 
+          });
+        }, 300);
+      } catch (error) {
+        console.error('❌ [RESULTS LOADING] Error searching flights:', error);
+        // Navigate to Results with empty array on error
+        setTimeout(() => {
+          navigation.replace('Results', { 
+            from: isMulticity ? '' : from, 
+            to: isMulticity ? '' : to, 
+            date: isMulticity ? '' : date, 
+            passengers, 
+            seatClass,
+            flights: [] 
+          });
+        }, 300);
+      }
     };
-    animate();
-  }, []);
-
-  useEffect(() => {
-    const listenerId = progressValue.addListener(({ value }) => {
-      const percent = Math.round(value * 100);
-      setPercentText(`${percent}%`);
-    });
-    return () => {
-      progressValue.removeListener(listenerId);
-    };
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Results', { from, to, date, passengers, seatClass });
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [from, to, date, passengers, seatClass]);
+    
+    searchFlights();
+  }, [from, to, date, passengers, seatClass, navigation, isMulticity, flightsSegments]);
 
   return (
     <View style={styles.container}>
@@ -75,7 +271,7 @@ export default function ResultsLoadingScreen() {
             <Icon name="airplane" size={24} color="#fff" />
           </View>
           <Text style={styles.progressPercent}>
-            {percentText}
+            {searchProgress}%
           </Text>
         </View>
       </View>

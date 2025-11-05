@@ -16,19 +16,19 @@ export default function SearchScreen() {
   const [airportData, setAirportData] = useState<{ airportType?: string; airport?: Airport } | null>(null);
 
   // Get last name or default to "User"
-  const lastName = user?.name?.split(' ').slice(-1)[0] || 'User';
+  const lastName = (user?.name && typeof user.name === 'string') 
+    ? user.name.split(' ').slice(-1)[0] 
+    : 'User';
 
-  useEffect(() => {
-    if (route.params?.airportType && route.params?.airport) {
-      setAirportData({
-        airportType: route.params.airportType,
-        airport: route.params.airport,
-      });
-      // Clear params after handling to avoid duplicate updates
-      // Note: FlightBookingCard also handles route.params directly, so this is a backup
-      navigation.setParams({ airportType: undefined, airport: undefined });
-    }
-  }, [route.params, navigation]);
+  // Không cần xử lý params ở đây nữa - FlightBookingCard tự xử lý route.params trực tiếp
+  // useEffect(() => {
+  //   if (route.params?.airportType && route.params?.airport) {
+  //     setAirportData({
+  //       airportType: route.params.airportType,
+  //       airport: route.params.airport,
+  //     });
+  //   }
+  // }, [route.params, navigation]);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>

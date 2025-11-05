@@ -1,12 +1,9 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, AuthTokens } from '../types/user';
+import { AuthState } from '../types/store-types';
 
-interface AuthState {
-  user: User | null;
-  tokens: AuthTokens | null;
-  isAuthenticated: boolean;
-  
+interface AuthStateWithActions extends AuthState {
   // Actions
   setUser: (user: User) => Promise<void>;
   setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
@@ -17,7 +14,7 @@ interface AuthState {
 const AUTH_STORAGE_KEY = '@auth_tokens';
 const USER_STORAGE_KEY = '@user_data';
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthStateWithActions>((set) => ({
   user: null,
   tokens: null,
   isAuthenticated: false,

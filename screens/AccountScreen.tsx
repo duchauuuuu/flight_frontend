@@ -3,13 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'rea
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { CommonActions } from '@react-navigation/native';
 import { useAuthStore } from '../store/authStore';
-
-interface MenuItem {
-  icon: keyof typeof Icon.glyphMap;
-  title: string;
-  badge?: string;
-  onPress: () => void;
-}
+import { MenuItem } from '../types/menu-item';
 
 export default function AccountScreen({ navigation }: any) {
   const { user, logout, isAuthenticated } = useAuthStore();
@@ -89,7 +83,8 @@ export default function AccountScreen({ navigation }: any) {
   };
 
   // Helper function to get initials from name
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string | null) => {
+    if (!name || typeof name !== 'string') return 'U';
     return name
       .split(' ')
       .map(word => word[0])
