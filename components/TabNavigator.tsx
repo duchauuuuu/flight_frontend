@@ -10,7 +10,8 @@ import { useAuthStore } from '../store/authStore';
 import SearchScreen from '../screens/SearchScreen';
 import ResultsScreen from '../screens/ResultsScreen';
 import ResultsLoadingScreen from '../screens/ResultsLoadingScreen';
-import PassengerInfoScreen from '../screens/PassengerInfoScreen';
+import BookingScreen from '../screens/BookingScreen';
+import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
 import AirportsScreen from '../screens/AirportsScreen';
 import DatePickerScreen from '../screens/DatePickerScreen';
 import MyTicketsScreen from '../screens/MyTicketsScreen';
@@ -19,29 +20,7 @@ import AccountScreen from '../screens/AccountScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/Register';
-
-export type RootTabParamList = {
-  Search: undefined;
-  MyTickets: undefined;
-  Notifications: undefined;
-  Account: undefined;
-};
-
-export type AccountStackParamList = {
-  AccountMain: undefined;
-  Profile: undefined;
-  Login: undefined;
-  Register: undefined;
-};
-
-export type SearchStackParamList = {
-  SearchMain: undefined;
-  Airports: { type: 'departure' | 'arrival' };
-  DatePicker: { type: 'departure' | 'return' };
-  ResultsLoading: { from: string; to: string; date: string; passengers: number; seatClass: string };
-  Results: { from: string; to: string; date: string; passengers: number; seatClass: string };
-  PassengerInfo: { flight: any; passengers?: number; pricing?: { base: number; taxesAndFees?: number; total: number } };
-};
+import { RootTabParamList, AccountStackParamList, SearchStackParamList } from '../types/navigation';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const AccountStack = createNativeStackNavigator<AccountStackParamList>();
@@ -81,8 +60,13 @@ function SearchStackScreen() {
         options={{ headerShown: false }}
       />
       <SearchStack.Screen 
-        name="PassengerInfo" 
-        component={PassengerInfoScreen}
+        name="Booking" 
+        component={BookingScreen}
+        options={{ headerShown: false }}
+      />
+      <SearchStack.Screen 
+        name="PaymentSuccess" 
+        component={PaymentSuccessScreen}
         options={{ headerShown: false }}
       />
     </SearchStack.Navigator>
@@ -145,14 +129,14 @@ export default function TabNavigator() {
             title: 'Tìm kiếm',
             tabBarLabel: 'Tìm kiếm',
             headerShown: false,
-            tabBarStyle: (routeName === 'Results' || routeName === 'ResultsLoading' || routeName === 'PassengerInfo') ? { display: 'none' } : undefined,
+            tabBarStyle: (routeName === 'Results' || routeName === 'ResultsLoading' || routeName === 'Booking' || routeName === 'PaymentSuccess') ? { display: 'none' } : undefined,
           };
         }}
       />
       <Tab.Screen 
         name="MyTickets" 
         component={MyTicketsScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Vé của tôi',
           tabBarLabel: 'Vé của tôi',
           headerRight: () => (
@@ -160,7 +144,8 @@ export default function TabNavigator() {
               <TouchableOpacity 
                 style={{ marginRight: 16, flexDirection: 'row', alignItems: 'center' }}
                 onPress={() => {
-                  console.log('Refresh tickets');
+                  // Navigate với param refresh để trigger refresh trong MyTicketsScreen
+                  navigation.navigate('MyTickets', { refresh: Date.now() });
                 }}
               >
                 <Icon name="refresh" size={20} color="#fff" />
@@ -171,7 +156,7 @@ export default function TabNavigator() {
               </TouchableOpacity>
             ) : null
           ),
-        }}
+        })}
       />
       <Tab.Screen 
         name="Notifications" 
