@@ -308,7 +308,13 @@ export default function ResultsScreen() {
           </View>
         ) : (
           flights.map((f, idx) => (
-          <View key={idx} style={styles.resultCardPlain}>
+          <TouchableOpacity key={idx} style={styles.resultCardPlain} activeOpacity={0.9} onPress={() => {
+            const pax = typeof passengers === 'number' ? passengers : 1;
+            const base = (f.price || 0) * pax;
+            const taxesAndFees = 0; // có thể thay bằng giá trị động nếu bạn tính ở Results
+            const total = base + taxesAndFees;
+            navigation.navigate('PassengerInfo', { flight: f, passengers: pax, pricing: { base, taxesAndFees, total } });
+          }}>
               <View style={styles.resultRowTopPlain}>
               <Text style={styles.timeTextPlain} numberOfLines={1}>{formatHm(f.departure)}</Text>
               <Text style={styles.durationTextPlain} numberOfLines={1}>{calcDuration(f.departure, f.arrival)}</Text>
@@ -329,7 +335,7 @@ export default function ResultsScreen() {
                 <Text style={styles.priceTextPlain} numberOfLines={1}>{f.price.toLocaleString('vi-VN')} đ</Text>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
           ))
         )}
         {!isLoading && flights.length === 0 && (
