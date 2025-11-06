@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../../store/authStore';
@@ -199,28 +200,36 @@ export default function AdminDashboard({ navigation }: any) {
   const StatCard = ({ icon, label, value, color }: { icon: keyof typeof Icon.glyphMap; label: string; value: string | number; color: string }) => (
     <View style={[styles.statCard, { borderLeftColor: color }]}>
       <View style={styles.statIconContainer}>
-        <Icon name={icon} size={24} color={color} />
+        <Icon name={icon} size={20} color={color} />
       </View>
       <View style={styles.statContent}>
-        <Text style={styles.statLabel}>{label}</Text>
-        <Text style={styles.statValue}>{value}</Text>
+        <Text style={styles.statLabel} numberOfLines={2} ellipsizeMode="tail">
+          {label}
+        </Text>
+        <Text style={styles.statValue} numberOfLines={1}>
+          {value}
+        </Text>
       </View>
     </View>
   );
 
   const MenuCard = ({ icon, title, onPress }: { icon: keyof typeof Icon.glyphMap; title: string; onPress: () => void }) => (
     <TouchableOpacity style={styles.menuCard} onPress={onPress}>
-      <Icon name={icon} size={32} color="#2873e6" />
-      <Text style={styles.menuTitle}>{title}</Text>
+      <Icon name={icon} size={28} color="#2873e6" />
+      <Text style={styles.menuTitle} numberOfLines={2} ellipsizeMode="tail">
+        {title}
+      </Text>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <View style={{ width: 40 }} />
-        <Text style={styles.headerTitle}>Quản trị viên</Text>
+        <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+          Quản trị viên
+        </Text>
         <TouchableOpacity
           onPress={async () => {
             await logout();
@@ -237,8 +246,12 @@ export default function AdminDashboard({ navigation }: any) {
       >
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeText}>Xin chào, {user?.name || 'Admin'}</Text>
-          <Text style={styles.welcomeSubtext}>Bảng điều khiển quản trị</Text>
+          <Text style={styles.welcomeText} numberOfLines={2} ellipsizeMode="tail">
+            Xin chào, {user?.name || 'Admin'}
+          </Text>
+          <Text style={styles.welcomeSubtext} numberOfLines={1} ellipsizeMode="tail">
+            Bảng điều khiển quản trị
+          </Text>
         </View>
 
         {/* Stats Grid */}
@@ -251,34 +264,33 @@ export default function AdminDashboard({ navigation }: any) {
 
         {/* Booking Status */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Trạng thái đặt vé</Text>
+          <Text style={styles.sectionTitle} numberOfLines={1} ellipsizeMode="tail">
+            Trạng thái đặt vé
+          </Text>
           <View style={styles.statusRow}>
             <View style={styles.statusItem}>
               <Text style={styles.statusValue}>{stats.currentBookings}</Text>
-              <Text style={styles.statusLabel}>Hiện tại</Text>
+              <Text style={styles.statusLabel} numberOfLines={1}>
+                Hiện tại
+              </Text>
             </View>
             <View style={styles.statusItem}>
               <Text style={[styles.statusValue, { color: '#10B981' }]}>{stats.pastBookings}</Text>
-              <Text style={styles.statusLabel}>Đã đi</Text>
+              <Text style={styles.statusLabel} numberOfLines={1}>
+                Đã đi
+              </Text>
             </View>
             <View style={styles.statusItem}>
               <Text style={[styles.statusValue, { color: '#EF4444' }]}>{stats.cancelledBookings}</Text>
-              <Text style={styles.statusLabel}>Đã hủy</Text>
+              <Text style={styles.statusLabel} numberOfLines={1}>
+                Đã hủy
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quản lý nhanh</Text>
-          <View style={styles.menuGrid}>
-            <MenuCard icon="airplane" title="Quản lý chuyến bay" onPress={() => navigation.navigate('AdminFlights')} />
-            <MenuCard icon="ticket-confirmation" title="Quản lý đặt vé" onPress={() => navigation.navigate('AdminBookings')} />
-            <MenuCard icon="account-group" title="Quản lý người dùng" onPress={() => navigation.navigate('AdminUsers')} />
-          </View>
-        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -293,14 +305,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#2873e6',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 16,
     paddingBottom: 16,
   },
   logoutButton: {
     padding: 8,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#fff',
     flex: 1,
@@ -311,31 +323,34 @@ const styles = StyleSheet.create({
   },
   welcomeSection: {
     backgroundColor: '#fff',
-    padding: 20,
-    marginBottom: 16,
+    padding: 16,
+    marginBottom: 12,
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 12,
   },
   welcomeText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#111827',
     marginBottom: 4,
   },
   welcomeSubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 16,
-    marginBottom: 16,
-    gap: 12,
+    marginBottom: 12,
+    gap: 10,
   },
   statCard: {
     flexDirection: 'row',
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     borderLeftWidth: 4,
     flex: 1,
     minWidth: '47%',
@@ -352,27 +367,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
     marginBottom: 4,
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#111827',
   },
   section: {
     backgroundColor: '#fff',
-    padding: 16,
-    marginBottom: 16,
+    padding: 14,
+    marginBottom: 12,
     marginHorizontal: 16,
     borderRadius: 12,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   statusRow: {
     flexDirection: 'row',
@@ -382,13 +397,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statusValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#2873e6',
     marginBottom: 4,
   },
   statusLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
   },
   menuGrid: {
@@ -399,17 +414,17 @@ const styles = StyleSheet.create({
   menuCard: {
     backgroundColor: '#F3F4F6',
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
     minWidth: '30%',
   },
   menuTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#111827',
-    marginTop: 8,
+    marginTop: 6,
     textAlign: 'center',
   },
 });

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useAuthStore } from '../../store/authStore';
 import axios from 'axios';
@@ -18,6 +19,34 @@ export default function AdminAddUserScreen({ navigation }: any) {
   const [saving, setSaving] = useState(false);
 
   const API_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_API_URL;
+
+  // Format ngày sinh theo định dạng DD/MM/YYYY
+  const formatDateInput = (text: string) => {
+    // Xóa tất cả ký tự không phải số
+    const numbers = text.replace(/\D/g, '');
+
+    // Giới hạn độ dài tối đa 8 số (DDMMYYYY)
+    const limitedNumbers = numbers.slice(0, 8);
+
+    // Format theo DD/MM/YYYY
+    let formatted = '';
+    if (limitedNumbers.length > 0) {
+      formatted = limitedNumbers.slice(0, 2); // DD
+      if (limitedNumbers.length > 2) {
+        formatted += '/' + limitedNumbers.slice(2, 4); // DD/MM
+      }
+      if (limitedNumbers.length > 4) {
+        formatted += '/' + limitedNumbers.slice(4, 8); // DD/MM/YYYY
+      }
+    }
+
+    return formatted;
+  };
+
+  const handleDobChange = (text: string) => {
+    const formatted = formatDateInput(text);
+    setDob(formatted);
+  };
 
   const handleSave = async () => {
     // Validate
@@ -88,7 +117,7 @@ export default function AdminAddUserScreen({ navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -163,9 +192,11 @@ export default function AdminAddUserScreen({ navigation }: any) {
           <TextInput
             style={styles.input}
             value={dob}
-            onChangeText={setDob}
-            placeholder="YYYY-MM-DD"
+            onChangeText={handleDobChange}
+            placeholder="DD/MM/YYYY (ví dụ: 14/03/2004)"
             placeholderTextColor="#9CA3AF"
+            keyboardType="numeric"
+            maxLength={10}
           />
         </View>
 
@@ -237,7 +268,7 @@ export default function AdminAddUserScreen({ navigation }: any) {
           <Text style={styles.saveButtonText}>{saving ? 'Đang lưu...' : 'Thêm người dùng'}</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -252,7 +283,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#2873e6',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 16,
     paddingBottom: 16,
   },
   backButton: {

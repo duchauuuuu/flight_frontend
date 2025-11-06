@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../../store/authStore';
@@ -275,13 +276,13 @@ export default function AdminBookingsScreen({ navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="arrow-left" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Quản lý đặt vé</Text>
+        <View style={{ width: 40 }} />
+        <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+          Quản lý đặt vé
+        </Text>
         <TouchableOpacity
           onPress={async () => {
             await logout();
@@ -318,7 +319,7 @@ export default function AdminBookingsScreen({ navigation }: any) {
               style={[styles.filterButton, filterStatus === status && styles.filterButtonActive]}
               onPress={() => setFilterStatus(status)}
             >
-              <Text style={[styles.filterText, filterStatus === status && styles.filterTextActive]}>
+              <Text style={[styles.filterText, filterStatus === status && styles.filterTextActive]} numberOfLines={1} ellipsizeMode="tail">
                 {status === 'all' ? 'Tất cả' : status === 'current' ? 'Hiện tại' : status === 'past' ? 'Đã đi' : 'Đã hủy'}
               </Text>
             </TouchableOpacity>
@@ -328,6 +329,7 @@ export default function AdminBookingsScreen({ navigation }: any) {
 
       <ScrollView
         style={styles.content}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {loading && bookings.length === 0 ? (
@@ -337,7 +339,7 @@ export default function AdminBookingsScreen({ navigation }: any) {
         ) : bookings.length === 0 ? (
           <View style={styles.centerContainer}>
             <Icon name="ticket-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyText}>
+            <Text style={styles.emptyText} numberOfLines={2} ellipsizeMode="tail">
               {searchQuery ? 'Không tìm thấy đặt vé' : 'Chưa có đặt vé nào'}
             </Text>
           </View>
@@ -348,34 +350,44 @@ export default function AdminBookingsScreen({ navigation }: any) {
             <View key={booking._id} style={styles.bookingCard}>
               <View style={styles.bookingHeader}>
                 <View style={styles.bookingCodeContainer}>
-                  <Text style={styles.bookingCodeLabel}>Mã đặt vé:</Text>
-                  <Text style={styles.bookingCode}>{booking.bookingCode}</Text>
+                  <Text style={styles.bookingCodeLabel} numberOfLines={1} ellipsizeMode="tail">
+                    Mã đặt vé:
+                  </Text>
+                  <Text style={styles.bookingCode} numberOfLines={1} ellipsizeMode="tail">
+                    {booking.bookingCode}
+                  </Text>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(bookingStatus) }]}>
-                  <Text style={styles.statusText}>{getStatusText(bookingStatus)}</Text>
+                  <Text style={styles.statusText} numberOfLines={1} ellipsizeMode="tail">
+                    {getStatusText(bookingStatus)}
+                  </Text>
                 </View>
               </View>
 
               <View style={styles.bookingInfo}>
                 <View style={styles.infoRow}>
                   <Icon name="airplane" size={16} color="#6B7280" />
-                  <Text style={styles.infoText}>
+                  <Text style={styles.infoText} numberOfLines={1} ellipsizeMode="tail">
                     {Array.isArray(booking.flightIds) ? `${booking.flightIds.length} chuyến` : '1 chuyến'}
                   </Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Icon name="tag" size={16} color="#6B7280" />
-                  <Text style={styles.infoText}>{booking.tripType || 'One-way'}</Text>
+                  <Text style={styles.infoText} numberOfLines={1} ellipsizeMode="tail">
+                    {booking.tripType || 'One-way'}
+                  </Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Icon name="cash" size={16} color="#6B7280" />
-                  <Text style={styles.infoText}>
+                  <Text style={styles.infoText} numberOfLines={1} ellipsizeMode="tail">
                     {booking.payment ? formatCurrency(booking.payment.amount) : 'N/A'}
                   </Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Icon name="calendar" size={16} color="#6B7280" />
-                  <Text style={styles.infoText}>{formatDate(booking.createdAt)}</Text>
+                  <Text style={styles.infoText} numberOfLines={1} ellipsizeMode="tail">
+                    {formatDate(booking.createdAt)}
+                  </Text>
                 </View>
               </View>
 
@@ -386,14 +398,18 @@ export default function AdminBookingsScreen({ navigation }: any) {
                     onPress={() => handleUpdateStatus(booking._id, 'completed')}
                   >
                     <Icon name="check" size={16} color="#fff" />
-                    <Text style={styles.actionButtonText}>Xác nhận</Text>
+                    <Text style={styles.actionButtonText} numberOfLines={1} ellipsizeMode="tail">
+                      Xác nhận
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.cancelButton]}
                     onPress={() => handleUpdateStatus(booking._id, 'cancelled')}
                   >
                     <Icon name="close" size={16} color="#fff" />
-                    <Text style={styles.actionButtonText}>Hủy vé</Text>
+                    <Text style={styles.actionButtonText} numberOfLines={1} ellipsizeMode="tail">
+                      Hủy vé
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -402,7 +418,7 @@ export default function AdminBookingsScreen({ navigation }: any) {
           })
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -417,7 +433,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#2873e6',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 16,
     paddingBottom: 16,
   },
   backButton: {
@@ -427,7 +443,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#fff',
     flex: 1,
@@ -438,7 +454,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     marginHorizontal: 16,
-    marginTop: 16,
+    marginTop: 12,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -461,7 +477,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    marginTop: 8,
+    marginTop: 12,
   },
   filterScroll: {
     paddingHorizontal: 16,
@@ -477,7 +493,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2873e6',
   },
   filterText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#6B7280',
   },
@@ -486,6 +502,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   centerContainer: {
     flex: 1,
@@ -498,16 +517,17 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#9CA3AF',
     marginTop: 16,
+    textAlign: 'center',
   },
   bookingCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     marginHorizontal: 16,
-    marginTop: 16,
+    marginTop: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -519,28 +539,33 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+    gap: 8,
   },
   bookingCodeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
   },
   bookingCodeLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
     marginRight: 8,
   },
   bookingCode: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#111827',
+    flex: 1,
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    flexShrink: 0,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: '#fff',
   },
@@ -554,8 +579,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   infoText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
+    flex: 1,
   },
   actionsContainer: {
     flexDirection: 'row',
@@ -581,7 +607,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF4444',
   },
   actionButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#fff',
   },
