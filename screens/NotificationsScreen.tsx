@@ -4,17 +4,7 @@ import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
-
-interface Notification {
-  _id: string;
-  userId: string;
-  title: string;
-  message: string;
-  type: string;
-  isRead: boolean;
-  bookingId?: string;
-  createdAt: string;
-}
+import { Notification } from '../types/notification';
 
 export default function NotificationsScreen() {
   const { isAuthenticated, user, tokens } = useAuthStore();
@@ -143,7 +133,7 @@ export default function NotificationsScreen() {
 
   if (!isAuthenticated) {
     return (
-      <View style={styles.container}>
+      <View style={styles.centerContainer}>
         <View style={styles.card}>
           <Icon name="account-circle" size={72} color="#9CA3AF" />
           <Text style={styles.cardTitle}>Bạn chưa đăng nhập</Text>
@@ -273,6 +263,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff',
   },
   scrollView: {
     flex: 1,

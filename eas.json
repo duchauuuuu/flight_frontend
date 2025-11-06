@@ -15,7 +15,14 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "distribution": "internal",
+  "android": {
+    "buildType": "apk"
+  },
+  "env": {
+    "EXPO_PUBLIC_BACKEND_URL": "https://flight-backend-vpns.onrender.com"
+  },
+  "autoIncrement": true
     }
   },
   "submit": {
