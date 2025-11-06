@@ -34,14 +34,35 @@ export default function AdminUsersScreen({ navigation }: any) {
 
     try {
       setLoading(true);
+      
+      // Kiểm tra cache trước
+      const { getCachedUsers, cacheUsers } = await import('../../utils/cacheService');
+      const cachedUsers = await getCachedUsers();
+      
+      if (cachedUsers && cachedUsers.length > 0) {
+        setUsers(cachedUsers);
+        setLoading(false);
+        setRefreshing(false);
+      }
+      
+      // Gọi API để lấy dữ liệu mới nhất
       const { data } = await axios.get(`${API_BASE_URL}/users`, {
         headers: { Authorization: `Bearer ${tokens.access_token}` },
       });
       const allUsers = Array.isArray(data) ? data : [];
       setUsers(allUsers);
+      
+      // Cache dữ liệu mới
+      await cacheUsers(allUsers);
     } catch (error: any) {
-      console.error('Error loading users:', error);
-      Alert.alert('Lỗi', 'Không thể tải danh sách người dùng');
+      // Nếu API lỗi nhưng có cache, vẫn hiển thị cache
+      const { getCachedUsers } = await import('../../utils/cacheService');
+      const cachedUsers = await getCachedUsers();
+      if (cachedUsers && cachedUsers.length > 0) {
+        setUsers(cachedUsers);
+      } else {
+        Alert.alert('Lỗi', 'Không thể tải danh sách người dùng');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);

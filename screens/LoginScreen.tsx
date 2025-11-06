@@ -148,9 +148,6 @@ export default function LoginScreen({ onClose, onGotoRegister }: LoginScreenProp
               
               // Lưu token và user info vào Zustand store
               if (response.data.access_token && response.data.user) {
-                console.log('Login response user:', response.data.user);
-                console.log('User name field:', response.data.user.name);
-                
                 // Đảm bảo lưu đúng user object với field name
                 const userData = {
                   _id: response.data.user._id,

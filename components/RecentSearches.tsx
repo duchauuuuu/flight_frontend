@@ -29,7 +29,6 @@ export default function RecentSearches() {
       
       setRecentSearches(Array.isArray(data) ? data : []);
     } catch (error: any) {
-      console.error('Error loading recent searches:', error);
       setRecentSearches([]);
     } finally {
       setLoading(false);
@@ -86,7 +85,6 @@ export default function RecentSearches() {
                         setRecentSearches([]);
                         Alert.alert('Thành công', 'Đã xóa tất cả lịch sử tìm kiếm');
                       } catch (error: any) {
-                        console.error('Error deleting search history:', error);
                         Alert.alert('Lỗi', 'Không thể xóa lịch sử tìm kiếm');
                       }
                     },
@@ -225,7 +223,6 @@ export default function RecentSearches() {
 
                         setRecentSearches(prev => prev.filter(s => s._id !== search._id));
                       } catch (error: any) {
-                        console.error('Error deleting search history:', error);
                         Alert.alert('Lỗi', 'Không thể xóa mục này');
                       }
                     }}

@@ -24,7 +24,7 @@ export const useAuthStore = create<AuthStateWithActions>((set) => ({
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
       set({ user, isAuthenticated: true });
     } catch (error) {
-      console.error('Error saving user:', error);
+      // Error saving user
     }
   },
 
@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthStateWithActions>((set) => ({
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(tokens));
       set({ tokens });
     } catch (error) {
-      console.error('Error saving tokens:', error);
+      // Error saving tokens
     }
   },
 
@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthStateWithActions>((set) => ({
       await AsyncStorage.removeItem(USER_STORAGE_KEY);
       set({ user: null, tokens: null, isAuthenticated: false });
     } catch (error) {
-      console.error('Error during logout:', error);
+      // Error during logout
     }
   },
 
@@ -54,7 +54,7 @@ export const useAuthStore = create<AuthStateWithActions>((set) => ({
       await AsyncStorage.removeItem(USER_STORAGE_KEY);
       set({ user: null, tokens: null, isAuthenticated: false });
     } catch (error) {
-      console.error('Error clearing auth:', error);
+      // Error clearing auth
     }
   },
 }));
@@ -73,7 +73,7 @@ export const loadAuthState = async () => {
       useAuthStore.setState({ tokens, user, isAuthenticated: true });
     }
   } catch (error) {
-    console.error('Error loading auth state:', error);
+    // Error loading auth state
   }
 };
 

@@ -37,6 +37,22 @@ export default function AdminEditUserScreen({ navigation, route }: any) {
 
     try {
       setLoading(true);
+      
+      // Kiểm tra cache trước
+      const { getCachedUser, cacheUsers } = await import('../../utils/cacheService');
+      const cachedUser = await getCachedUser(userId);
+      
+      if (cachedUser) {
+        setName(cachedUser.name || '');
+        setEmail(cachedUser.email || '');
+        setPhone(cachedUser.phone || '');
+        setDob(cachedUser.dob || '');
+        setGender(cachedUser.gender as 'male' | 'female' | 'other' || 'male');
+        setPoints(String(cachedUser.points || 0));
+        setLoading(false);
+      }
+      
+      // Gọi API để lấy dữ liệu mới nhất
       const { data } = await axios.get(`${API_BASE_URL}/users/${userId}`, {
         headers: { Authorization: `Bearer ${tokens.access_token}` },
       });
@@ -48,8 +64,27 @@ export default function AdminEditUserScreen({ navigation, route }: any) {
       setGender((data.gender as 'male' | 'female' | 'other') || 'male');
       // Không load role vì không cho phép thay đổi
       setPoints(String(data.points || 0));
+      
+      // Cache user
+      const getMembershipTier = (points: number): string => {
+        if (points >= 10000) return 'Kim Cương';
+        if (points >= 5000) return 'Bạch Kim';
+        if (points >= 2000) return 'Vàng';
+        if (points >= 500) return 'Bạc';
+        return 'Đồng';
+      };
+      await cacheUsers([{
+        _id: data._id,
+        name: data.name || '',
+        email: data.email,
+        phone: data.phone || '',
+        dob: data.dob || '',
+        gender: data.gender || '',
+        points: data.points || 0,
+        membershipTier: getMembershipTier(data.points || 0),
+        role: data.role || 'Customer',
+      }]);
     } catch (error: any) {
-      console.error('Error loading user:', error);
       Alert.alert('Lỗi', 'Không thể tải thông tin người dùng');
     } finally {
       setLoading(false);
@@ -112,7 +147,6 @@ export default function AdminEditUserScreen({ navigation, route }: any) {
         },
       ]);
     } catch (error: any) {
-      console.error('Error updating user:', error);
       const errorMessage =
         error?.response?.data?.message || error?.message || 'Không thể cập nhật thông tin người dùng';
       Alert.alert('Lỗi', errorMessage);

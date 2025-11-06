@@ -107,7 +107,6 @@ export default function AdminAddUserScreen({ navigation }: any) {
         },
       ]);
     } catch (error: any) {
-      console.error('Error creating user:', error);
       const errorMessage =
         error?.response?.data?.message || error?.message || 'Không thể thêm người dùng';
       Alert.alert('Lỗi', errorMessage);

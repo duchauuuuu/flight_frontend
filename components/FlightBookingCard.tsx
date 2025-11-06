@@ -75,7 +75,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
   // State cho tripType - khôi phục từ module-level storage nếu đã có
   const [tripType, setTripType] = useState<'round' | 'oneway' | 'multicity'>(() => {
     const saved = persistentTripTypeStorage.value;
-    console.log('🟡 [INIT] Setting tripType from storage:', saved);
     return saved;
   });
   
@@ -100,14 +99,12 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
   // State riêng cho điểm đi - khôi phục từ module-level storage nếu đã có
   const [departureAirport, setDepartureAirport] = useState<Airport | null>(() => {
     const saved = persistentDepartureStorage.value;
-    console.log('🔵 [INIT] Setting departure airport from storage:', saved?.code || defaultDeparture.code);
     return saved || defaultDeparture;
   });
   
   // State riêng cho điểm đến - khôi phục từ module-level storage nếu đã có
   const [arrivalAirport, setArrivalAirport] = useState<Airport | null>(() => {
     const saved = persistentArrivalStorage.value;
-    console.log('🔵 [INIT] Setting arrival airport from storage:', saved?.code || defaultArrival.code);
     return saved || defaultArrival;
   });
   
@@ -115,41 +112,23 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
   useEffect(() => {
     if (departureAirport) {
       persistentDepartureStorage.value = departureAirport;
-      console.log('💾 [PERSIST] Saved departure to module storage:', departureAirport.code);
     }
   }, [departureAirport]);
   
   useEffect(() => {
     if (arrivalAirport) {
       persistentArrivalStorage.value = arrivalAirport;
-      console.log('💾 [PERSIST] Saved arrival to module storage:', arrivalAirport.code);
     }
   }, [arrivalAirport]);
   
-  // Log khi state thay đổi
-  useEffect(() => {
-    console.log('🟢 [STATE CHANGE] departureAirport:', departureAirport?.code, departureAirport?.name);
-  }, [departureAirport]);
-  
-  useEffect(() => {
-    console.log('🟢 [STATE CHANGE] arrivalAirport:', arrivalAirport?.code, arrivalAirport?.name);
-  }, [arrivalAirport]);
 
   // Sync tripType state với module-level storage để persist khi re-mount
   useEffect(() => {
     if (tripType) {
       persistentTripTypeStorage.value = tripType;
-      console.log('💾 [PERSIST] Saved tripType to module storage:', tripType);
     }
   }, [tripType]);
   
-  // Log khi component mount/unmount để debug re-mount
-  useEffect(() => {
-    console.log('🟣 [LIFECYCLE] Component mounted');
-    return () => {
-      console.log('🟣 [LIFECYCLE] Component unmounted');
-    };
-  }, []);
   
   // Computed values từ state
   const departure = departureAirport?.code || '';
@@ -165,8 +144,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
     if (!persistentDepartDateStorage.value) {
       persistentDepartDateStorage.value = saved;
     }
-    console.log('📅 [INIT] departDate initialized to:', saved);
-    console.log('📅 [INIT] persistentDepartDateStorage.value:', persistentDepartDateStorage.value);
     return saved;
   });
   const [returnDate, setReturnDate] = useState(() => {
@@ -175,8 +152,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
     if (!persistentReturnDateStorage.value) {
       persistentReturnDateStorage.value = saved;
     }
-    console.log('📅 [INIT] returnDate initialized to:', saved);
-    console.log('📅 [INIT] persistentReturnDateStorage.value:', persistentReturnDateStorage.value);
     return saved;
   });
   const [seatClass, setSeatClass] = useState('Phổ thông');
@@ -208,7 +183,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
   const [flights, setFlights] = useState<FlightSegment[]>(() => {
     const saved = persistentFlightsStorage.value;
     if (saved && saved.length > 0) {
-      console.log('🟣 [INIT] Setting flights from storage:', saved.length, 'flights');
       return saved;
     }
     // Default: một chuyến bay với giá trị mặc định (giống logic một chiều)
@@ -221,7 +195,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
       arrivalCity: `${defaultArrival.city}, ${defaultArrival.country}`,
       date: defaultDate,
     };
-    console.log('🟣 [INIT] Setting flights to default (no saved data):', defaultFlight);
     return [defaultFlight];
   });
 
@@ -229,7 +202,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
   useEffect(() => {
     if (tripType === 'multicity' && flights.length > 0) {
       persistentFlightsStorage.value = flights;
-      console.log('💾 [PERSIST] Saved flights to module storage:', flights.length, 'flights');
     } else if (tripType !== 'multicity') {
       // Clear flights storage khi không phải multicity mode
       persistentFlightsStorage.value = null;
@@ -241,34 +213,17 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
   
   // Handle params returning from Airports/DatePicker - XỬ LÝ DUY NHẤT TẠI ĐÂY
   useEffect(() => {
-    console.log('🔴 [USEFFECT] ========== useEffect triggered ==========');
     const params = route.params as any;
-    console.log('🔴 [USEFFECT] route.params:', JSON.stringify(params));
-    console.log('🔴 [USEFFECT] Current state BEFORE processing:');
-    console.log('🔴 [USEFFECT] - departDate:', departDate);
-    console.log('🔴 [USEFFECT] - returnDate:', returnDate);
-    console.log('🔴 [USEFFECT] - persistentDepartDateStorage.value:', persistentDepartDateStorage.value);
-    console.log('🔴 [USEFFECT] - persistentReturnDateStorage.value:', persistentReturnDateStorage.value);
     
     if (!params) {
-      console.log('🔴 [USEFFECT] No params, returning');
       return;
     }
     
     const { mode, flightIndex, airportType: typeFromAirport, airport, selectedDate, dateType } = params;
-    console.log('🔴 [USEFFECT] Extracted params:', {
-      mode,
-      flightIndex,
-      typeFromAirport,
-      airport: airport?.code,
-      selectedDate,
-      dateType,
-    });
     
     // Bỏ qua nếu không có data hợp lệ (sau khi clear params)
     // Nhưng phải check selectedDate và dateType riêng vì có thể chỉ có date update
     if (!airport && !selectedDate && !mode && !dateType) {
-      console.log('🔴 [USEFFECT] No valid data, returning');
       return;
     }
     
@@ -277,25 +232,14 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
     const airportKey = airport && typeFromAirport ? `${typeFromAirport}-${airport.code}` : '';
     const dateKey = selectedDate && dateType ? `${dateType}-${selectedDate}` : '';
     const paramsKey = airportKey || dateKey || `${mode}-${flightIndex}`;
-    console.log('🔴 [USEFFECT] paramsKey:', paramsKey);
-    console.log('🔴 [USEFFECT] airportKey:', airportKey);
-    console.log('🔴 [USEFFECT] dateKey:', dateKey);
-    console.log('🔴 [USEFFECT] processedParamsRef:', Array.from(processedParamsRef.current));
     
     // Nếu params này đã được xử lý, bỏ qua
     if (processedParamsRef.current.has(paramsKey)) {
-      console.log('🔴 [USEFFECT] Params already processed, skipping');
       return;
     }
     
     // Handle multicity mode
     if (mode === 'multicity' && typeof flightIndex === 'number') {
-      console.log('🟣 [MULTICITY UPDATE] Starting multicity update');
-      console.log('🟣 [MULTICITY UPDATE] flightIndex:', flightIndex);
-      console.log('🟣 [MULTICITY UPDATE] airport:', airport?.code);
-      console.log('🟣 [MULTICITY UPDATE] selectedDate:', selectedDate);
-      console.log('🟣 [MULTICITY UPDATE] Current flights BEFORE update:', flights);
-      
       setFlights(prev => {
         const updated = [...prev];
         const target = { ...updated[flightIndex] };
@@ -304,25 +248,20 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
           if (typeFromAirport === 'departure') {
             target.departure = airport.code;
             target.departureCity = `${airport.city}, ${airport.country}`;
-            console.log('🟣 [MULTICITY UPDATE] Updated departure:', airport.code);
           } else if (typeFromAirport === 'arrival') {
             target.arrival = airport.code;
             target.arrivalCity = `${airport.city}, ${airport.country}`;
-            console.log('🟣 [MULTICITY UPDATE] Updated arrival:', airport.code);
           }
         }
         
         if (selectedDate && dateType === 'departure') {
           target.date = selectedDate;
-          console.log('🟣 [MULTICITY UPDATE] Updated date:', selectedDate);
         }
         
         updated[flightIndex] = target;
-        console.log('🟣 [MULTICITY UPDATE] Updated flights:', updated);
         
         // Lưu vào module-level storage trước để persist
         persistentFlightsStorage.value = updated;
-        console.log('💾 [PERSIST] Saved flights to module storage:', updated.length, 'flights');
         
         return updated;
       });
@@ -336,16 +275,8 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
     
     // Handle single/round trip mode - update directly from route params
     if (airport && typeFromAirport && !mode) {
-      console.log('🟡 [AIRPORT UPDATE] Starting airport update');
-      console.log('🟡 [AIRPORT UPDATE] typeFromAirport:', typeFromAirport);
-      console.log('🟡 [AIRPORT UPDATE] airport:', airport.code, airport.name);
-      console.log('🟡 [AIRPORT UPDATE] Current state BEFORE update:');
-      console.log('🟡 [AIRPORT UPDATE] - departureAirport:', departureAirport?.code, departureAirport?.name);
-      console.log('🟡 [AIRPORT UPDATE] - arrivalAirport:', arrivalAirport?.code, arrivalAirport?.name);
-      
       // Đánh dấu đã xử lý TRƯỚC KHI setState để tránh xử lý lại
       processedParamsRef.current.add(paramsKey);
-      console.log('🟡 [AIRPORT UPDATE] Added to processedParams:', paramsKey);
       
       // Đánh dấu đã initialize
       hasInitializedRef.current = true;
@@ -354,39 +285,26 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
       // Sử dụng closure để lưu giá trị hiện tại
       const currentDeparture = departureAirport || defaultDeparture;
       const currentArrival = arrivalAirport || defaultArrival;
-      console.log('🟡 [AIRPORT UPDATE] Saved current values:');
-      console.log('🟡 [AIRPORT UPDATE] - currentDeparture:', currentDeparture?.code);
-      console.log('🟡 [AIRPORT UPDATE] - currentArrival:', currentArrival?.code);
       
       if (typeFromAirport === 'departure') {
         // Chỉ cập nhật state cho điểm đi, GIỮ NGUYÊN điểm đến
-        console.log('🟡 [AIRPORT UPDATE] Updating DEPARTURE to:', airport.code);
-        console.log('🟡 [AIRPORT UPDATE] Will keep arrival:', currentArrival?.code);
-        
         // Lưu vào module-level storage trước để persist
         persistentDepartureStorage.value = airport;
         persistentArrivalStorage.value = currentArrival;
-        console.log('💾 [PERSIST] Saved to module storage - departure:', airport.code, 'arrival:', currentArrival.code);
         
         setDepartureAirport(airport);
         // Đảm bảo arrival không bị thay đổi
         setArrivalAirport(currentArrival);
       } else if (typeFromAirport === 'arrival') {
         // Chỉ cập nhật state cho điểm đến, GIỮ NGUYÊN điểm đi
-        console.log('🟡 [AIRPORT UPDATE] Updating ARRIVAL to:', airport.code);
-        console.log('🟡 [AIRPORT UPDATE] Will keep departure:', currentDeparture?.code);
-        
         // Lưu vào module-level storage trước để persist
         persistentDepartureStorage.value = currentDeparture;
         persistentArrivalStorage.value = airport;
-        console.log('💾 [PERSIST] Saved to module storage - departure:', currentDeparture.code, 'arrival:', airport.code);
         
         setArrivalAirport(airport);
         // Đảm bảo departure không bị thay đổi
         setDepartureAirport(currentDeparture);
       }
-      
-      console.log('🟡 [AIRPORT UPDATE] All setState calls completed');
       
       // KHÔNG clear params để tránh component re-mount
       // Params sẽ được clear tự động khi navigate đến màn hình khác
@@ -402,19 +320,8 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
       const hasAirportParams = airport && typeFromAirport;
       
       if (!hasAirportParams) {
-        console.log('🟢 [DATE UPDATE] ========== STARTING DATE UPDATE ==========');
-        console.log('🟢 [DATE UPDATE] selectedDate:', selectedDate);
-        console.log('🟢 [DATE UPDATE] dateType:', dateType);
-        console.log('🟢 [DATE UPDATE] paramsKey:', paramsKey);
-        console.log('🟢 [DATE UPDATE] Current state BEFORE update:');
-        console.log('🟢 [DATE UPDATE] - departDate:', departDate);
-        console.log('🟢 [DATE UPDATE] - returnDate:', returnDate);
-        console.log('🟢 [DATE UPDATE] - persistentDepartDateStorage.value:', persistentDepartDateStorage.value);
-        console.log('🟢 [DATE UPDATE] - persistentReturnDateStorage.value:', persistentReturnDateStorage.value);
-        
         // Check if this date update was already processed
         if (processedParamsRef.current.has(paramsKey)) {
-          console.log('🟢 [DATE UPDATE] Already processed, skipping');
           return;
         }
         
@@ -422,55 +329,33 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
         const currentDepartDate = departDate || persistentDepartDateStorage.value || getDefaultDates().depart;
         const currentReturnDate = returnDate || persistentReturnDateStorage.value || getDefaultDates().return;
         
-        console.log('🟢 [DATE UPDATE] Saved current values:');
-        console.log('🟢 [DATE UPDATE] - currentDepartDate:', currentDepartDate);
-        console.log('🟢 [DATE UPDATE] - currentReturnDate:', currentReturnDate);
-        
         // selectedDate is already in display format from DatePickerScreen (e.g., "6 Thg 11, 2025")
         // So we can use it directly
       if (dateType === 'departure') {
-          console.log('🟢 [DATE UPDATE] Updating DEPARTURE date to:', selectedDate);
-          console.log('🟢 [DATE UPDATE] Will keep returnDate:', currentReturnDate);
-          
           // Lưu vào module-level storage trước để persist
           persistentDepartDateStorage.value = selectedDate;
           persistentReturnDateStorage.value = currentReturnDate;
-          console.log('💾 [PERSIST] Saved to module storage - departDate:', selectedDate, 'returnDate:', currentReturnDate);
           
           setDepartDate(selectedDate);
           // Đảm bảo returnDate không bị thay đổi
           setReturnDate(currentReturnDate);
       } else if (dateType === 'return') {
-          console.log('🟢 [DATE UPDATE] Updating RETURN date to:', selectedDate);
-          console.log('🟢 [DATE UPDATE] Will keep departDate:', currentDepartDate);
-          
           // Lưu vào module-level storage trước để persist
           persistentDepartDateStorage.value = currentDepartDate;
           persistentReturnDateStorage.value = selectedDate;
-          console.log('💾 [PERSIST] Saved to module storage - departDate:', currentDepartDate, 'returnDate:', selectedDate);
           
           setReturnDate(selectedDate);
           // Đảm bảo departDate không bị thay đổi
           setDepartDate(currentDepartDate);
         }
         
-        console.log('🟢 [DATE UPDATE] All setState calls completed');
-        console.log('🟢 [DATE UPDATE] State AFTER update should be:');
-        console.log('🟢 [DATE UPDATE] - departDate should be:', dateType === 'departure' ? selectedDate : currentDepartDate);
-        console.log('🟢 [DATE UPDATE] - returnDate should be:', dateType === 'return' ? selectedDate : currentReturnDate);
-        
         // Đánh dấu đã xử lý
         processedParamsRef.current.add(paramsKey);
-        console.log('🟢 [DATE UPDATE] Added to processedParams:', paramsKey);
         
         // Clear params ngay lập tức
         setTimeout(() => {
       navigation.setParams({ selectedDate: undefined, dateType: undefined });
-          console.log('🟢 [DATE UPDATE] Cleared params');
         }, 100);
-        console.log('🟢 [DATE UPDATE] ========== DATE UPDATE COMPLETED ==========');
-      } else {
-        console.log('🟢 [DATE UPDATE] Skipping - airport params present, will be handled separately');
       }
     }
   }, [route.params, navigation]);
@@ -488,7 +373,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
     setFlights(updatedFlights);
     // Lưu vào module-level storage
     persistentFlightsStorage.value = updatedFlights;
-    console.log('💾 [PERSIST] Saved flights after add:', updatedFlights.length, 'flights');
   };
 
   const removeFlight = (id: string) => {
@@ -497,7 +381,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
       setFlights(updatedFlights);
       // Lưu vào module-level storage
       persistentFlightsStorage.value = updatedFlights;
-      console.log('💾 [PERSIST] Saved flights after remove:', updatedFlights.length, 'flights');
     }
   };
   
@@ -531,7 +414,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
       const f = { ...updated[index] };
       // Lưu vào module-level storage
       persistentFlightsStorage.value = updated;
-      console.log('💾 [PERSIST] Saved flights after swap:', updated.length, 'flights');
       const tmpCode = f.departure;
       const tmpCity = f.departureCity;
       f.departure = f.arrival;
@@ -546,23 +428,15 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
   const handleSearch = async () => {
     try {
       setLoading(true);
-      console.log('🔍 [SEARCH] Starting search');
-      console.log('🔍 [SEARCH] Trip type:', tripType);
       
       // Xử lý multicity search
       if (tripType === 'multicity') {
-        console.log('🟣 [SEARCH] Multicity search detected');
-        console.log('🟣 [SEARCH] Flights array:', flights);
-        
         // Validate flights array
         const validFlights = flights.filter(f => f.departure && f.arrival && f.date);
         if (validFlights.length === 0) {
-          console.error('🟣 [SEARCH] No valid flights found for multicity search');
           alert('Vui lòng nhập đầy đủ thông tin cho các chuyến bay');
           return;
         }
-        
-        console.log('🟣 [SEARCH] Valid flights:', validFlights.length);
         
         // Lưu search history nếu user đã đăng nhập
         if (isAuthenticated && user?._id && API_BASE_URL && validFlights.length > 0) {
@@ -607,7 +481,7 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
               }
             );
           } catch (error: any) {
-            console.error('Error saving search history:', error);
+            // Error saving search history
           }
         }
         
@@ -623,11 +497,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
       }
       
       // Xử lý single/round trip search
-      console.log('🔵 [SEARCH] Single/Round trip search');
-      console.log('🔵 [SEARCH] From:', departure, departureAirport?.name);
-      console.log('🔵 [SEARCH] To:', arrival, arrivalAirport?.name);
-      console.log('🔵 [SEARCH] Date:', departDate);
-      
       // Lưu search history nếu user đã đăng nhập
       if (isAuthenticated && user?._id && API_BASE_URL && departureAirport && arrivalAirport) {
         try {
@@ -651,7 +520,6 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
           );
         } catch (error: any) {
           // Không block search nếu lưu history thất bại
-          console.error('Error saving search history:', error);
         }
       }
       
@@ -665,7 +533,7 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
       });
       
     } catch (error: any) {
-      console.error('Search error:', error);
+      // Search error
     } finally {
       setLoading(false);
     }

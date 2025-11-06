@@ -19,23 +19,50 @@ export default function MyTicketsScreen() {
   const loadBookings = useCallback(async () => {
     if (!isAuthenticated || !user?._id || !API_BASE_URL) return;
     try {
+      // Kiểm tra cache trước
+      const { getCachedBookings, cacheBookings, getCachedFlight } = await import('../utils/cacheService');
+      const cachedBookings = await getCachedBookings(user._id);
+      
+      if (cachedBookings && cachedBookings.length > 0) {
+        let list = cachedBookings;
+        
+        // Ensure flights are populated
+        const needsFetch = list.filter((bk: any) => Array.isArray(bk.flightIds) && typeof bk.flightIds[0] === 'string');
+        if (needsFetch.length) {
+          const idToFlight: Record<string, any> = {};
+          await Promise.all(needsFetch.map(async (bk: any) => {
+            const id = bk.flightIds[0];
+            if (id && !idToFlight[id]) {
+              try {
+                const cachedFlight = await getCachedFlight(id);
+                if (cachedFlight) {
+                  idToFlight[id] = cachedFlight;
+                } else {
+                  const r = await axios.get(`${API_BASE_URL}/flights/${id}`);
+                  idToFlight[id] = r.data;
+                }
+              } catch {}
+            }
+          }));
+          list = list.map((bk: any) => {
+            if (Array.isArray(bk.flightIds) && typeof bk.flightIds[0] === 'string') {
+              const id = bk.flightIds[0];
+              if (idToFlight[id]) {
+                return { ...bk, flightIds: [idToFlight[id]] };
+              }
+            }
+            return bk;
+          });
+        }
+        setBookings(list);
+      }
+      
+      // Gọi API để lấy dữ liệu mới nhất
       const { data } = await axios.get(`${API_BASE_URL}/bookings`, {
         params: { userId: user._id },
         headers: tokens?.access_token ? { Authorization: `Bearer ${tokens.access_token}` } : undefined,
       });
       let list = Array.isArray(data) ? data : [];
-      
-      // Debug: Log raw data from API
-      console.log('Raw bookings data:', JSON.stringify(list, null, 2));
-      
-      // Check if flights are populated
-      if (list.length > 0) {
-        const firstBooking = list[0];
-        console.log('First booking flightIds:', firstBooking?.flightIds);
-        if (firstBooking?.flightIds?.[0]) {
-          console.log('First flight data:', JSON.stringify(firstBooking.flightIds[0], null, 2));
-        }
-      }
       
       // Ensure flights are populated; if an item has string flightId, fetch it
       const needsFetch = list.filter((bk: any) => Array.isArray(bk.flightIds) && typeof bk.flightIds[0] === 'string');
@@ -61,8 +88,16 @@ export default function MyTicketsScreen() {
         });
       }
       setBookings(list);
+      
+      // Cache dữ liệu mới
+      await cacheBookings(list, user._id);
     } catch (e: any) {
-      console.log('Load bookings failed:', (e && e.response && e.response.data) || e?.message || String(e));
+      // Nếu API lỗi nhưng có cache, vẫn hiển thị cache
+      const { getCachedBookings } = await import('../utils/cacheService');
+      const cachedBookings = await getCachedBookings(user._id);
+      if (cachedBookings && cachedBookings.length > 0) {
+        setBookings(cachedBookings);
+      }
     }
   }, [API_BASE_URL, isAuthenticated, user?._id, tokens?.access_token]);
 
@@ -124,7 +159,6 @@ export default function MyTicketsScreen() {
               // Reload danh sách vé
               await loadBookings();
             } catch (error: any) {
-              console.error('Cancel booking error:', error);
               const errorMessage = error?.response?.data?.message || error?.message || 'Không thể hủy vé. Vui lòng thử lại.';
               Alert.alert('Lỗi', errorMessage);
             }
@@ -307,21 +341,6 @@ export default function MyTicketsScreen() {
                 
                 const dep = parseDate(f?.departure);
                 const arr = parseDate(f?.arrival);
-                
-                // Debug log (remove in production)
-                if (!dep || !arr) {
-                  console.log('Flight data missing:', {
-                    hasFlight: !!f,
-                    flightId: f?._id || f?.flightNumber,
-                    departure: f?.departure,
-                    arrival: f?.arrival,
-                    from: f?.from,
-                    to: f?.to,
-                    airline: f?.airline,
-                    isMulticity,
-                    totalFlights: allFlights.length,
-                  });
-                }
                 
                 const hhmm = (d?: Date | null) => {
                   if (!d || isNaN(d.getTime())) return '--:--';

@@ -92,6 +92,46 @@ export default function AdminEditFlightScreen({ navigation, route }: any) {
 
     try {
       setLoading(true);
+      
+      // Kiểm tra cache trước
+      const { getCachedFlight, cacheFlights } = await import('../../utils/cacheService');
+      const cachedFlight = await getCachedFlight(flightId);
+      
+      if (cachedFlight) {
+        // Populate form từ cache
+        setFlightNumber(cachedFlight.flightNumber || '');
+        setAirline(cachedFlight.airline || '');
+        setFrom(cachedFlight.from || '');
+        setTo(cachedFlight.to || '');
+        
+        if (cachedFlight.departure) {
+          const depDate = new Date(cachedFlight.departure);
+          const day = String(depDate.getDate()).padStart(2, '0');
+          const month = String(depDate.getMonth() + 1).padStart(2, '0');
+          const year = depDate.getFullYear();
+          const hours = String(depDate.getHours()).padStart(2, '0');
+          const minutes = String(depDate.getMinutes()).padStart(2, '0');
+          setDepartureDate(`${day}/${month}/${year}`);
+          setDepartureTime(`${hours}:${minutes}`);
+        }
+        
+        if (cachedFlight.arrival) {
+          const arrDate = new Date(cachedFlight.arrival);
+          const day = String(arrDate.getDate()).padStart(2, '0');
+          const month = String(arrDate.getMonth() + 1).padStart(2, '0');
+          const year = arrDate.getFullYear();
+          const hours = String(arrDate.getHours()).padStart(2, '0');
+          const minutes = String(arrDate.getMinutes()).padStart(2, '0');
+          setArrivalDate(`${day}/${month}/${year}`);
+          setArrivalTime(`${hours}:${minutes}`);
+        }
+        
+        setPrice(String(cachedFlight.price || ''));
+        setStops(String(cachedFlight.stops || 0));
+        setLoading(false);
+      }
+      
+      // Gọi API để lấy dữ liệu mới nhất
       const { data } = await axios.get(`${API_BASE_URL}/flights/${flightId}`, {
         headers: { Authorization: `Bearer ${tokens.access_token}` },
       });
@@ -127,8 +167,22 @@ export default function AdminEditFlightScreen({ navigation, route }: any) {
       
       setPrice(String(data.price || 0));
       setStops(String(data.stops || 0));
+      
+      // Cache flight (đã import cacheFlights ở trên)
+      await cacheFlights([{
+        _id: data._id,
+        flightNumber: data.flightNumber,
+        from: data.from,
+        to: data.to,
+        departure: data.departure,
+        arrival: data.arrival,
+        price: data.price,
+        stops: data.stops || 0,
+        airline: data.airline,
+        availableCabins: data.availableCabins || [],
+        seatsAvailable: data.seatsAvailable || {},
+      }]);
     } catch (error: any) {
-      console.error('Error loading flight:', error);
       Alert.alert('Lỗi', 'Không thể tải thông tin chuyến bay');
     } finally {
       setLoading(false);
@@ -220,7 +274,6 @@ export default function AdminEditFlightScreen({ navigation, route }: any) {
       Alert.alert('Thành công', 'Đã cập nhật thông tin chuyến bay');
       navigation.goBack();
     } catch (error: any) {
-      console.error('Error saving flight:', error);
       Alert.alert('Lỗi', error.response?.data?.message || 'Không thể cập nhật chuyến bay');
     } finally {
       setSaving(false);

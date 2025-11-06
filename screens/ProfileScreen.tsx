@@ -23,8 +23,28 @@ export default function ProfileScreen({ navigation }: any) {
       return;
     }
 
+    let cachedUser = null;
     try {
       setLoading(true);
+      
+      // Kiểm tra cache trước
+      const { getCachedUser } = await import('../utils/cacheService');
+      cachedUser = await getCachedUser(user._id);
+      
+      if (cachedUser) {
+        setName(cachedUser.name || '');
+        setEmail(cachedUser.email || '');
+        setPhone(cachedUser.phone || '');
+        if (cachedUser.dob) {
+          setBirthDate(cachedUser.dob);
+        }
+        if (cachedUser.gender) {
+          setGender(cachedUser.gender as 'male' | 'female' | 'other');
+        }
+        setLoading(false);
+      }
+      
+      // Gọi API để lấy dữ liệu mới nhất
       const { data } = await axios.get(`${API_BASE_URL}/users/${user._id}`, {
         headers: tokens?.access_token ? { Authorization: `Bearer ${tokens.access_token}` } : undefined,
       });
@@ -38,8 +58,32 @@ export default function ProfileScreen({ navigation }: any) {
       if (data.gender) {
         setGender(data.gender as 'male' | 'female' | 'other');
       }
+      
+      // Cache user
+      const { cacheUsers } = await import('../utils/cacheService');
+      const getMembershipTier = (points: number): string => {
+        if (points >= 10000) return 'Kim Cương';
+        if (points >= 5000) return 'Bạch Kim';
+        if (points >= 2000) return 'Vàng';
+        if (points >= 500) return 'Bạc';
+        return 'Đồng';
+      };
+      await cacheUsers([{
+        _id: data._id,
+        name: data.name || '',
+        email: data.email,
+        phone: data.phone || '',
+        dob: data.dob || '',
+        gender: data.gender || '',
+        points: data.points || 0,
+        membershipTier: getMembershipTier(data.points || 0),
+        role: data.role || 'Customer',
+      }]);
     } catch (error: any) {
-      console.error('Error loading user data:', error);
+      // Nếu API lỗi nhưng có cache, vẫn dùng cache
+      if (cachedUser) {
+        // Đã set từ cache ở trên
+      }
     } finally {
       setLoading(false);
     }
@@ -133,7 +177,6 @@ export default function ProfileScreen({ navigation }: any) {
       Alert.alert('Thành công', 'Thông tin đã được cập nhật');
       navigation.goBack();
     } catch (error: any) {
-      console.error('Error saving profile:', error);
       const errorMessage =
         error?.response?.data?.message || error?.message || 'Có lỗi xảy ra khi cập nhật thông tin';
       Alert.alert('Lỗi', errorMessage);

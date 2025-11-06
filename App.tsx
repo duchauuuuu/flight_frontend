@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import TabNavigator from './components/TabNavigator';
 import AdminNavigator from './components/AdminNavigator';
 import { loadAuthState, useAuthStore } from './store/authStore';
+import { initDatabase, clearExpiredCache } from './utils/database';
 
 export default function App() {
   const { user, isAuthenticated } = useAuthStore();
@@ -16,6 +17,22 @@ export default function App() {
       setAuthLoaded(true);
     };
     initAuth();
+  }, []);
+
+  useEffect(() => {
+    // Khởi tạo database và xóa cache hết hạn khi app khởi động
+    const initDB = async () => {
+      try {
+        await initDatabase();
+        // Xóa cache hết hạn mỗi 10 phút
+        setInterval(async () => {
+          await clearExpiredCache();
+        }, 10 * 60 * 1000);
+      } catch (error) {
+        // Error initializing database
+      }
+    };
+    initDB();
   }, []);
 
   // Nếu là admin thì hiển thị AdminNavigator, không thì hiển thị TabNavigator

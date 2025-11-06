@@ -148,7 +148,6 @@ export default function AdminAddFlightScreen({ navigation }: any) {
       Alert.alert('Thành công', 'Đã thêm chuyến bay mới');
       navigation.goBack();
     } catch (error: any) {
-      console.error('Error saving flight:', error);
       Alert.alert('Lỗi', error.response?.data?.message || 'Không thể thêm chuyến bay');
     } finally {
       setSaving(false);

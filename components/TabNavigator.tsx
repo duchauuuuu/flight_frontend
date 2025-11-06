@@ -97,7 +97,6 @@ export default function TabNavigator() {
       );
       setUnreadCount(typeof data === 'number' ? data : 0);
     } catch (error: any) {
-      console.error('Error loading unread count:', error);
       setUnreadCount(0);
     }
   }, [isAuthenticated, user?._id, tokens?.access_token, API_BASE_URL]);

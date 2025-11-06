@@ -17,8 +17,32 @@ export default function AccountScreen({ navigation }: any) {
       return;
     }
 
+    let cachedUser = null;
     try {
       setRefreshing(true);
+      
+      // Kiểm tra cache trước
+      const { getCachedUser, cacheUsers } = await import('../utils/cacheService');
+      cachedUser = await getCachedUser(user._id);
+      
+      if (cachedUser) {
+        const getMembershipTier = (points: number): string => {
+          if (points >= 10000) return 'Kim Cương';
+          if (points >= 5000) return 'Bạch Kim';
+          if (points >= 2000) return 'Vàng';
+          if (points >= 500) return 'Bạc';
+          return 'Đồng';
+        };
+        
+        const updatedUser = {
+          ...cachedUser,
+          membershipTier: getMembershipTier(cachedUser.points || 0),
+        };
+        await setUser(updatedUser);
+        setRefreshing(false);
+      }
+      
+      // Gọi API để lấy dữ liệu mới nhất
       const { data } = await axios.get(`${API_BASE_URL}/users/${user._id}`, {
         headers: tokens?.access_token ? { Authorization: `Bearer ${tokens.access_token}` } : undefined,
       });
@@ -45,8 +69,29 @@ export default function AccountScreen({ navigation }: any) {
       };
 
       await setUser(updatedUser);
+      
+      // Cache user (cập nhật cache users)
+      await cacheUsers([updatedUser]);
     } catch (error: any) {
-      console.error('Error loading user data:', error);
+      // Nếu API lỗi nhưng có cache, vẫn dùng cache
+      if (!cachedUser) {
+        const { getCachedUser } = await import('../utils/cacheService');
+        const cached = await getCachedUser(user._id);
+        if (cached) {
+          const getMembershipTier = (points: number): string => {
+            if (points >= 10000) return 'Kim Cương';
+            if (points >= 5000) return 'Bạch Kim';
+            if (points >= 2000) return 'Vàng';
+            if (points >= 500) return 'Bạc';
+            return 'Đồng';
+          };
+          const updatedUser = {
+            ...cached,
+            membershipTier: getMembershipTier(cached.points || 0),
+          };
+          await setUser(updatedUser);
+        }
+      }
     } finally {
       setRefreshing(false);
     }
@@ -66,43 +111,43 @@ export default function AccountScreen({ navigation }: any) {
       icon: 'star-outline',
       title: 'Điểm thưởng của tôi',
       badge: `${user?.points || 0} điểm`,
-      onPress: () => console.log('Điểm thưởng'),
+      onPress: () => {},
     },
     {
       icon: 'tag-outline',
       title: 'Ưu đãi',
-      onPress: () => console.log('Ưu đãi'),
+      onPress: () => {},
     },
     {
       icon: 'gift-outline',
       title: 'Giới thiệu nhận quà',
       badge: 'Mới',
-      onPress: () => console.log('Giới thiệu'),
+      onPress: () => {},
     },
     {
       icon: 'credit-card-outline',
       title: 'Quản lý thẻ',
-      onPress: () => console.log('Quản lý thẻ'),
+      onPress: () => {},
     },
     {
       icon: 'text-box-outline',
       title: 'Đánh giá chuyến đi',
-      onPress: () => console.log('Đánh giá'),
+      onPress: () => {},
     },
     {
       icon: 'cog-outline',
       title: 'Cài đặt',
-      onPress: () => console.log('Cài đặt'),
+      onPress: () => {},
     },
     {
       icon: 'help-circle-outline',
       title: 'Trung tâm Hỗ trợ',
-      onPress: () => console.log('Hỗ trợ'),
+      onPress: () => {},
     },
     {
       icon: 'email-outline',
       title: 'Góp ý',
-      onPress: () => console.log('Góp ý'),
+      onPress: () => {},
     },
   ];
 

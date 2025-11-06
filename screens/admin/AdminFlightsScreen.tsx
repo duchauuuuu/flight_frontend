@@ -42,13 +42,35 @@ export default function AdminFlightsScreen({ navigation }: any) {
 
     try {
       setLoading(true);
+      
+      // Kiểm tra cache trước
+      const { getCachedFlights, cacheFlights } = await import('../../utils/cacheService');
+      const cachedFlights = await getCachedFlights();
+      
+      if (cachedFlights && cachedFlights.length > 0) {
+        setAllFlights(cachedFlights as any);
+        setLoading(false);
+        setRefreshing(false);
+      }
+      
+      // Gọi API để lấy dữ liệu mới nhất
       const { data } = await axios.get(`${API_BASE_URL}/flights`, {
         headers: { Authorization: `Bearer ${tokens.access_token}` },
       });
-      setAllFlights(Array.isArray(data) ? data : []);
+      const flights = Array.isArray(data) ? data : [];
+      setAllFlights(flights);
+      
+      // Cache dữ liệu mới
+      await cacheFlights(flights);
     } catch (error: any) {
-      console.error('Error loading flights:', error);
-      Alert.alert('Lỗi', 'Không thể tải danh sách chuyến bay');
+      // Nếu API lỗi nhưng có cache, vẫn hiển thị cache
+      const { getCachedFlights } = await import('../../utils/cacheService');
+      const cachedFlights = await getCachedFlights();
+      if (cachedFlights && cachedFlights.length > 0) {
+        setAllFlights(cachedFlights as any);
+      } else {
+        Alert.alert('Lỗi', 'Không thể tải danh sách chuyến bay');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);

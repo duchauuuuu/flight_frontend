@@ -42,6 +42,104 @@ export default function AdminBookingsScreen({ navigation }: any) {
 
     try {
       setLoading(true);
+      
+      // Kiểm tra cache trước
+      const { getCachedBookings, cacheBookings } = await import('../../utils/cacheService');
+      const cachedBookings = await getCachedBookings();
+      
+      if (cachedBookings && cachedBookings.length > 0) {
+        // Xử lý cached bookings tương tự như API response
+        let allBookings = cachedBookings;
+        
+        // Ensure flights are populated
+        const needsFetch = allBookings.filter(
+          (bk: any) => Array.isArray(bk.flightIds) && bk.flightIds.length > 0 && typeof bk.flightIds[0] === 'string'
+        );
+        if (needsFetch.length) {
+          const idToFlight: Record<string, any> = {};
+          await Promise.all(
+            needsFetch.map(async (bk: any) => {
+              for (const id of bk.flightIds) {
+                if (id && typeof id === 'string' && !idToFlight[id]) {
+                  try {
+                    const { getCachedFlight } = await import('../../utils/cacheService');
+                    const cachedFlight = await getCachedFlight(id);
+                    if (cachedFlight) {
+                      idToFlight[id] = cachedFlight;
+                    } else {
+                      const r = await axios.get(`${API_BASE_URL}/flights/${id}`);
+                      idToFlight[id] = r.data;
+                    }
+                  } catch {}
+                }
+              }
+            })
+          );
+          allBookings = allBookings.map((bk: any) => {
+            if (Array.isArray(bk.flightIds) && bk.flightIds.length > 0 && typeof bk.flightIds[0] === 'string') {
+              return {
+                ...bk,
+                flightIds: bk.flightIds.map((id: string) => idToFlight[id] || id),
+              };
+            }
+            return bk;
+          });
+        }
+        
+        // Filter bookings theo trạng thái
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const parseDate = (dateValue: any): Date | null => {
+          if (!dateValue) return null;
+          if (dateValue instanceof Date) return dateValue;
+          if (typeof dateValue === 'string') {
+            const parsed = new Date(dateValue);
+            return isNaN(parsed.getTime()) ? null : parsed;
+          }
+          if (typeof dateValue === 'object' && dateValue.$date) {
+            const parsed = new Date(dateValue.$date);
+            return isNaN(parsed.getTime()) ? null : parsed;
+          }
+          return null;
+        };
+        
+        let filteredBookings = allBookings;
+        if (filterStatus !== 'all') {
+          filteredBookings = allBookings.filter((b: any) => {
+            const status = b.status || 'pending';
+            if (status === 'cancelled') return filterStatus === 'cancelled';
+            if (status === 'completed') return filterStatus === 'past';
+            
+            const f: any = b.flightIds && Array.isArray(b.flightIds) && b.flightIds[0] ? b.flightIds[0] : null;
+            if (!f || !f.departure) return filterStatus === 'current';
+            
+            const depDate = parseDate(f.departure);
+            if (!depDate) return filterStatus === 'current';
+            
+            const departureDate = new Date(depDate);
+            departureDate.setHours(0, 0, 0, 0);
+            
+            if (filterStatus === 'current') return departureDate >= today;
+            if (filterStatus === 'past') return departureDate < today;
+            return true;
+          });
+        }
+        
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          filteredBookings = filteredBookings.filter((b: any) => {
+            const code = (b.bookingCode || '').toLowerCase();
+            return code.includes(query);
+          });
+        }
+        
+        setBookings(filteredBookings as any);
+        setLoading(false);
+        setRefreshing(false);
+      }
+      
+      // Gọi API để lấy dữ liệu mới nhất
       const { data } = await axios.get(`${API_BASE_URL}/bookings`, {
         headers: { Authorization: `Bearer ${tokens.access_token}` },
       });
@@ -148,9 +246,21 @@ export default function AdminBookingsScreen({ navigation }: any) {
         : filtered;
 
       setBookings(finalFiltered);
+      
+      // Cache dữ liệu mới
+      await cacheBookings(allBookings);
     } catch (error: any) {
-      console.error('Error loading bookings:', error);
-      Alert.alert('Lỗi', 'Không thể tải danh sách đặt vé');
+      // Nếu API lỗi nhưng có cache, vẫn hiển thị cache
+      const { getCachedBookings } = await import('../../utils/cacheService');
+      const cachedBookings = await getCachedBookings();
+      if (cachedBookings && cachedBookings.length > 0) {
+        // Xử lý tương tự như trên
+        let allBookings = cachedBookings;
+        // ... (xử lý filter tương tự)
+        setBookings(allBookings as any);
+      } else {
+        Alert.alert('Lỗi', 'Không thể tải danh sách đặt vé');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);

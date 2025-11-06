@@ -33,17 +33,43 @@ export default function NotificationsScreen() {
       return;
     }
 
+    let cachedNotifications: any[] | null = null;
     try {
       setLoading(true);
+      
+      // Kiểm tra cache trước
+      const { getCachedNotifications, cacheNotifications } = await import('../utils/cacheService');
+      cachedNotifications = await getCachedNotifications(user._id);
+      
+      if (cachedNotifications && cachedNotifications.length > 0) {
+        // Map từ cache service type sang screen type
+        const mappedNotifications = cachedNotifications.map((n: any) => ({
+          ...n,
+          isRead: n.read || false,
+        }));
+        setNotifications(mappedNotifications);
+        setLoading(false);
+      }
+      
+      // Gọi API để lấy dữ liệu mới nhất
       const { data } = await axios.get(`${API_BASE_URL}/notifications`, {
         params: { userId: user._id },
         headers: tokens?.access_token ? { Authorization: `Bearer ${tokens.access_token}` } : undefined,
       });
       
-      setNotifications(Array.isArray(data) ? data : []);
+      const notifications = Array.isArray(data) ? data : [];
+      setNotifications(notifications);
+      
+      // Cache dữ liệu
+      await cacheNotifications(notifications.map((n: any) => ({
+        ...n,
+        read: n.isRead || false,
+      })), user._id);
     } catch (error: any) {
-      console.error('Error loading notifications:', error);
-      setNotifications([]);
+      // Nếu API lỗi nhưng có cache, vẫn hiển thị cache
+      if (!cachedNotifications || cachedNotifications.length === 0) {
+        setNotifications([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -87,7 +113,6 @@ export default function NotificationsScreen() {
         }
       );
 
-      console.log('🟢 [NOTIFICATIONS] All notifications marked as read');
       Alert.alert('Thành công', 'Đã đánh dấu tất cả thông báo là đã đọc');
       
       // Refresh notifications list
@@ -96,7 +121,6 @@ export default function NotificationsScreen() {
       // Emit event để TabNavigator reload unread count
       // TabNavigator sẽ tự động reload khi focus vào tab
     } catch (error: any) {
-      console.error('Error marking all notifications as read:', error);
       Alert.alert(
         'Lỗi',
         error?.response?.data?.message || 'Không thể đánh dấu thông báo là đã đọc. Vui lòng thử lại.'
@@ -208,7 +232,7 @@ export default function NotificationsScreen() {
                       // Refresh notifications list
                       await loadNotifications();
                     } catch (error: any) {
-                      console.error('Error marking notification as read:', error);
+                      // Error marking notification as read
                     }
                   }
                 }}

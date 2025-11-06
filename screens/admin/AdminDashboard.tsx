@@ -172,7 +172,7 @@ export default function AdminDashboard({ navigation }: any) {
         cancelledBookings,
       });
     } catch (error: any) {
-      console.error('Error loading stats:', error);
+      // Error loading stats
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -26,10 +26,19 @@ export default function AirportsScreen() {
       try {
         setLoading(true);
         if (!API_BASE_URL) {
-          console.error('API_BASE_URL chưa được cấu hình');
           setAirports([]);
           setFilteredAirports([]);
           return;
+        }
+
+        // Kiểm tra cache trước
+        const { getCachedAirports, cacheAirports } = await import('../utils/cacheService');
+        const cachedAirports = await getCachedAirports();
+        
+        if (cachedAirports && cachedAirports.length > 0) {
+          setAirports(cachedAirports);
+          setFilteredAirports(cachedAirports);
+          setLoading(false);
         }
 
         // Gọi endpoint thật từ DB (sau khi đã seed)
@@ -38,28 +47,35 @@ export default function AirportsScreen() {
         if (Array.isArray(data) && data.length > 0) {
           setAirports(data);
           setFilteredAirports(data);
+          // Cache dữ liệu
+          await cacheAirports(data);
         } else {
-          console.warn('Không có dữ liệu airports. Bạn đã gọi POST /seed để tạo dữ liệu chưa?');
-          setAirports([]);
-          setFilteredAirports([]);
+          if (!cachedAirports || cachedAirports.length === 0) {
+            setAirports([]);
+            setFilteredAirports([]);
+          }
         }
       } catch (error: any) {
-        console.error('Error fetching airports:', error);
-        console.error('Chi tiết lỗi:', {
-          message: error?.message,
-          status: error?.response?.status,
-          url: error?.config?.url,
-        });
         
-        // Nếu lỗi, thử fallback về mock endpoint
-        try {
-          const { data } = await axios.get(`${API_BASE_URL}/airports/mock`);
-          setAirports(Array.isArray(data) ? data : []);
-          setFilteredAirports(Array.isArray(data) ? data : []);
-        } catch (fallbackError) {
-          console.error('Fallback cũng lỗi:', fallbackError);
-          setAirports([]);
-          setFilteredAirports([]);
+        // Nếu lỗi, kiểm tra cache
+        const { getCachedAirports } = await import('../utils/cacheService');
+        const cachedAirports = await getCachedAirports();
+        if (cachedAirports && cachedAirports.length > 0) {
+          setAirports(cachedAirports);
+          setFilteredAirports(cachedAirports);
+        } else {
+          // Nếu không có cache, thử fallback về mock endpoint
+          try {
+            const { data } = await axios.get(`${API_BASE_URL}/airports/mock`);
+            const mockData = Array.isArray(data) ? data : [];
+            setAirports(mockData);
+            setFilteredAirports(mockData);
+            const { cacheAirports } = await import('../utils/cacheService');
+            await cacheAirports(mockData);
+          } catch (fallbackError) {
+            setAirports([]);
+            setFilteredAirports([]);
+          }
         }
       } finally {
         setLoading(false);

@@ -47,7 +47,7 @@ export default function ResultsLoadingScreen() {
         }
       }
     } catch (error) {
-      console.error('Error parsing date:', error);
+      // Error parsing date
     }
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -68,16 +68,11 @@ export default function ResultsLoadingScreen() {
     const searchFlights = async () => {
       try {
         setSearchProgress(0);
-        console.log('🔍 [RESULTS LOADING] Starting flight search');
-        console.log('🔍 [RESULTS LOADING] Is multicity:', isMulticity);
         
         if (!API_BASE_URL) throw new Error('API base URL not configured');
 
         // Xử lý multicity search
         if (isMulticity) {
-          console.log('🟣 [RESULTS LOADING] Multicity search');
-          console.log('🟣 [RESULTS LOADING] Segments:', flightsSegments);
-          
           setSearchProgress(10);
           
           // Convert segments to API format
@@ -86,8 +81,6 @@ export default function ResultsLoadingScreen() {
             to: f.arrival,
             date: toISODateFromDisplay(f.date),
           }));
-          
-          console.log('🟣 [RESULTS LOADING] API segments:', segments);
           
           setSearchProgress(30);
           
@@ -98,13 +91,7 @@ export default function ResultsLoadingScreen() {
             passengers: passengers,
           };
           
-          console.log('🟣 [RESULTS LOADING] Request body:', JSON.stringify(requestBody, null, 2));
-          
           const { data } = await axios.post(`${API_BASE_URL}/flights/search-multicity`, requestBody);
-          
-          console.log('🟣 [RESULTS LOADING] Response:', data);
-          console.log('🟣 [RESULTS LOADING] Response type:', Array.isArray(data) ? 'array' : typeof data);
-          console.log('🟣 [RESULTS LOADING] Response length:', Array.isArray(data) ? data.length : 'not array');
           
           setSearchProgress(80);
           
@@ -124,14 +111,11 @@ export default function ResultsLoadingScreen() {
             }));
           });
           
-          console.log('🟣 [RESULTS LOADING] Mapped flights:', allFlights.map((f, i) => `Segment ${i + 1}: ${f.length} flights`).join(', '));
-          
           setSearchProgress(100);
           
           // Navigate to Results screen with multicity data
           // Note: Results screen chưa hỗ trợ multicity, cần flatten hoặc xử lý riêng
           const flattenedFlights = allFlights.flat();
-          console.log('🟣 [RESULTS LOADING] Flattened flights:', flattenedFlights.length);
           
           setTimeout(() => {
             navigation.replace('Results', { 
@@ -149,9 +133,6 @@ export default function ResultsLoadingScreen() {
         }
         
         // Xử lý single/round trip search
-        console.log('🔵 [RESULTS LOADING] Single/Round trip search');
-        console.log('🔵 [RESULTS LOADING] From:', from, 'To:', to, 'Date:', date);
-        
         // Convert display date to ISO format for API
         const isoDate = toISODateFromDisplay(date);
 
@@ -163,10 +144,6 @@ export default function ResultsLoadingScreen() {
         if (to) queryParams.append('to', to);
         if (isoDate) {
           queryParams.append('date', isoDate);
-          console.log('📅 [RESULTS LOADING] Searching with date:', {
-            original: date,
-            isoDate: isoDate,
-          });
         }
         if (seatClass) {
           queryParams.append('cabinClass', seatClass);
@@ -177,17 +154,32 @@ export default function ResultsLoadingScreen() {
         
         setSearchProgress(50);
 
+        // Kiểm tra cache trước
+        const { getCachedSearchResults, cacheSearchResults, createSearchKey, cacheFlights } = await import('../utils/cacheService');
+        const searchKey = createSearchKey({ from, to, date: isoDate, cabinClass: seatClass, passengers });
+        const cachedResults = await getCachedSearchResults(searchKey);
+        
+        if (cachedResults && cachedResults.length > 0) {
+          setSearchProgress(100);
+          navigation.replace('Results', {
+            flights: cachedResults,
+            from,
+            to,
+            date,
+            seatClass,
+            passengers,
+          });
+          return;
+        }
+
         // Call real search API (BE seed data) - backend will filter by cabinClass and passengers
-        console.log('🔵 [RESULTS LOADING] Calling API:', `${API_BASE_URL}/flights/search?${queryParams.toString()}`);
         const { data } = await axios.get(`${API_BASE_URL}/flights/search?${queryParams.toString()}`);
         
-        console.log('🔵 [RESULTS LOADING] API response:', data);
-        console.log('🔵 [RESULTS LOADING] Response length:', Array.isArray(data) ? data.length : 'not array');
-
         setSearchProgress(80);
 
         // BE đã trả đúng schema và đã filter; chỉ ép kiểu về FE type
         const mappedFlights: Flight[] = (Array.isArray(data) ? data : []).map((f: any) => ({
+          _id: f._id,
           flightNumber: f.flightNumber,
           from: f.from,
           to: f.to,
@@ -200,10 +192,12 @@ export default function ResultsLoadingScreen() {
           seatsAvailable: f.seatsAvailable ?? { Economy: 50 },
         }));
         
-        console.log('🔵 [RESULTS LOADING] Mapped flights:', mappedFlights.length);
-        
         // Backend đã filter theo cabinClass và passengers, không cần filter lại ở FE
         const filtered = mappedFlights;
+        
+        // Cache kết quả tìm kiếm và flights
+        await cacheSearchResults(searchKey, filtered);
+        await cacheFlights(filtered);
 
         setSearchProgress(100);
 
@@ -219,7 +213,6 @@ export default function ResultsLoadingScreen() {
           });
         }, 300);
       } catch (error) {
-        console.error('❌ [RESULTS LOADING] Error searching flights:', error);
         // Navigate to Results with empty array on error
         setTimeout(() => {
           navigation.replace('Results', { 
