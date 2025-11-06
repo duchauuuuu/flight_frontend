@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "flight",
-    "slug": "flight",
+    "name": "Flight Booking",
+    "slug": "flight-booking-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/iconungdung.jpg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/anhkhoichay.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -28,6 +28,11 @@
     },
     "plugins": [
       "expo-sqlite"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "11da1eab-2ab1-4c52-8e6e-c83f54dbd913"
+      }
+    }
   }
 }
