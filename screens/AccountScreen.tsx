@@ -1,12 +1,65 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../store/authStore';
 import { MenuItem } from '../types/menu-item';
+import axios from 'axios';
 
 export default function AccountScreen({ navigation }: any) {
-  const { user, logout, isAuthenticated } = useAuthStore();
+  const { user, logout, isAuthenticated, setUser, tokens } = useAuthStore();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const API_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_API_URL;
+
+  const loadUserData = useCallback(async () => {
+    if (!isAuthenticated || !user?._id || !API_BASE_URL) {
+      return;
+    }
+
+    try {
+      setRefreshing(true);
+      const { data } = await axios.get(`${API_BASE_URL}/users/${user._id}`, {
+        headers: tokens?.access_token ? { Authorization: `Bearer ${tokens.access_token}` } : undefined,
+      });
+
+      // Tính membershipTier từ points
+      const getMembershipTier = (points: number): string => {
+        if (points >= 10000) return 'Kim Cương';
+        if (points >= 5000) return 'Bạch Kim';
+        if (points >= 2000) return 'Vàng';
+        if (points >= 500) return 'Bạc';
+        return 'Đồng';
+      };
+
+      const updatedUser = {
+        _id: data._id,
+        name: data.name || '',
+        email: data.email,
+        phone: data.phone || '',
+        dob: data.dob || '',
+        gender: data.gender || '',
+        points: data.points || 0,
+        membershipTier: getMembershipTier(data.points || 0),
+        role: data.role || 'Customer',
+      };
+
+      await setUser(updatedUser);
+    } catch (error: any) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [isAuthenticated, user?._id, tokens?.access_token, API_BASE_URL, setUser]);
+
+  // Load user data khi focus vào screen
+  useFocusEffect(
+    useCallback(() => {
+      if (isAuthenticated) {
+        loadUserData();
+      }
+    }, [isAuthenticated, loadUserData])
+  );
 
   const menuItemsBase: MenuItem[] = [
     {

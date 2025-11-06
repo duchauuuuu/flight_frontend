@@ -153,11 +153,11 @@ export default function ResultsScreen() {
   
   // Map từ tiếng Việt sang tiếng Anh
   const cabinMapViToEn: Record<string, string> = {
-    'Phổ thông': 'Economy',
-    'Phổ thông cao cấp': 'Premium Economy',
-    'Thương gia': 'Business',
-    'Hạng nhất': 'First',
-  };
+          'Phổ thông': 'Economy',
+          'Phổ thông cao cấp': 'Premium Economy',
+          'Thương gia': 'Business',
+          'Hạng nhất': 'First',
+        };
   
   // Map từ tiếng Anh sang tiếng Việt
   const cabinMapEnToVi: Record<string, string> = {
@@ -166,7 +166,7 @@ export default function ResultsScreen() {
     'Business': 'Business',
     'First': 'First',
   };
-  
+
   // Lấy hạng ghế đã chọn từ params
   const selectedCabinEn = seatClass ? cabinMapViToEn[String(seatClass)] : undefined;
   const selectedCabinDisplay = selectedCabinEn ? cabinViMap[selectedCabinEn] || selectedCabinEn : undefined;
@@ -556,49 +556,49 @@ export default function ResultsScreen() {
                   ) : (
                     // Hiển thị single flight (không phải multicity)
                     <>
-                      {/* From */}
-                      <View style={styles.timelineRow}>
-                        <View style={styles.timelineColLeft}>
-                          <Text style={styles.timelineTime}>{formatHm(selectedFlight.departure)}</Text>
-                          <Text style={styles.timelineDate}>{formatDateVN(selectedFlight.departure)}</Text>
+                  {/* From */}
+                  <View style={styles.timelineRow}>
+                    <View style={styles.timelineColLeft}>
+                      <Text style={styles.timelineTime}>{formatHm(selectedFlight.departure)}</Text>
+                      <Text style={styles.timelineDate}>{formatDateVN(selectedFlight.departure)}</Text>
+                    </View>
+                    <View style={styles.timelineColDot}>
+                      <View style={styles.dot} />
+                      <View style={styles.vLine} />
+                    </View>
+                    <View style={styles.timelineColRight}>
+                      <Text style={styles.cityTitle} numberOfLines={1}>{from === 'HAN' ? 'Hà Nội' : from}</Text>
+                      <Text style={styles.airportName} numberOfLines={2}>Sân bay quốc tế Nội Bài</Text>
+                      <View style={styles.flightCard}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
+                          <Icon name="airplane" size={16} color="#EF4444" />
+                          <Text style={[styles.flightAirline, { flex: 1, flexShrink: 1 }]} numberOfLines={1}>  {selectedFlight.airline}</Text>
                         </View>
-                        <View style={styles.timelineColDot}>
-                          <View style={styles.dot} />
-                          <View style={styles.vLine} />
-                        </View>
-                        <View style={styles.timelineColRight}>
-                          <Text style={styles.cityTitle} numberOfLines={1}>{from === 'HAN' ? 'Hà Nội' : from}</Text>
-                          <Text style={styles.airportName} numberOfLines={2}>Sân bay quốc tế Nội Bài</Text>
-                          <View style={styles.flightCard}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
-                              <Icon name="airplane" size={16} color="#EF4444" />
-                              <Text style={[styles.flightAirline, { flex: 1, flexShrink: 1 }]} numberOfLines={1}>  {selectedFlight.airline}</Text>
-                            </View>
-                            <Text style={styles.flightMeta} numberOfLines={2}>{selectedFlight.flightNumber} - Airbus A320-100/200</Text>
+                        <Text style={styles.flightMeta} numberOfLines={2}>{selectedFlight.flightNumber} - Airbus A320-100/200</Text>
                             <Text style={styles.flightMeta} numberOfLines={1}>{selectedCabinShortCode}</Text>
-                            <View style={styles.flightDivider} />
-                            <View style={{ flexDirection: 'row', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                              <Icon name="clock-outline" size={16} color="#64748B" style={{ marginTop: 2 }} />
+                        <View style={styles.flightDivider} />
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                          <Icon name="clock-outline" size={16} color="#64748B" style={{ marginTop: 2 }} />
                               <Text style={[styles.flightMeta, { flex: 1, flexShrink: 1 }]} numberOfLines={2}>  Thời gian bay: {(calcDuration(selectedFlight.departure, selectedFlight.arrival) || '00h00m').replace('h', ' giờ ').replace('m', ' phút')}</Text>
-                            </View>
-                          </View>
                         </View>
                       </View>
+                    </View>
+        </View>
 
-                      {/* To */}
-                      <View style={styles.timelineRowEnd}>
-                        <View style={styles.timelineColLeft}>
-                          <Text style={styles.timelineTime}>{formatHm(selectedFlight.arrival)}</Text>
-                          <Text style={styles.timelineDate}>{formatDateVN(selectedFlight.arrival)}</Text>
-                        </View>
-                        <View style={styles.timelineColDot}>
-                          <View style={styles.dot} />
-                        </View>
-                        <View style={styles.timelineColRight}>
-                          <Text style={styles.cityTitle} numberOfLines={1}>{to === 'SGN' ? 'TP Hồ Chí Minh' : to}</Text>
-                          <Text style={styles.airportName} numberOfLines={2}>Sân bay quốc tế Tân Sơn Nhất</Text>
-                        </View>
-                      </View>
+                  {/* To */}
+                  <View style={styles.timelineRowEnd}>
+                    <View style={styles.timelineColLeft}>
+                      <Text style={styles.timelineTime}>{formatHm(selectedFlight.arrival)}</Text>
+                      <Text style={styles.timelineDate}>{formatDateVN(selectedFlight.arrival)}</Text>
+                    </View>
+                    <View style={styles.timelineColDot}>
+                      <View style={styles.dot} />
+          </View>
+                    <View style={styles.timelineColRight}>
+                      <Text style={styles.cityTitle} numberOfLines={1}>{to === 'SGN' ? 'TP Hồ Chí Minh' : to}</Text>
+                      <Text style={styles.airportName} numberOfLines={2}>Sân bay quốc tế Tân Sơn Nhất</Text>
+        </View>
+      </View>
                     </>
                   )}
                 </View>

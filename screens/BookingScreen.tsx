@@ -224,10 +224,19 @@ export default function BookingScreen() {
               };
               
               console.log('🟢 [BOOKING] Creating booking with payload:', JSON.stringify(payload, null, 2));
+              console.log('💰 [BOOKING] Payment details:', {
+                method: paymentMethod,
+                amount: Number(totalPriceText.total || 0),
+                totalPriceText,
+              });
 
-              await axios.post(`${API_BASE_URL}/bookings`, payload, {
+              const response = await axios.post(`${API_BASE_URL}/bookings`, payload, {
                 headers: tokens?.access_token ? { Authorization: `Bearer ${tokens.access_token}` } : undefined,
               });
+              
+              console.log('✅ [BOOKING] Booking created successfully:', response.data);
+              console.log('💰 [BOOKING] Response payment:', response.data?.payment);
+              
               navigation.navigate('PaymentSuccess');
             } catch (err: any) {
               console.error('Booking failed:', err?.response?.data || err?.message || err);

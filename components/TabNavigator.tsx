@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import { getFocusedRouteNameFromRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { TouchableOpacity, Text, View } from 'react-native';
+import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { useAuthStore } from '../store/authStore';
+import axios from 'axios';
 
 import SearchScreen from '../screens/SearchScreen';
 import ResultsScreen from '../screens/ResultsScreen';
@@ -75,7 +76,45 @@ function SearchStackScreen() {
 
 export default function TabNavigator() {
   const insets = useSafeAreaInsets();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user, tokens } = useAuthStore();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const navigation = useNavigation();
+
+  const API_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_API_URL;
+
+  const loadUnreadCount = useCallback(async () => {
+    if (!isAuthenticated || !user?._id || !API_BASE_URL) {
+      setUnreadCount(0);
+      return;
+    }
+
+    try {
+      const { data } = await axios.get(
+        `${API_BASE_URL}/notifications/user/${user._id}/unread-count`,
+        {
+          headers: tokens?.access_token ? { Authorization: `Bearer ${tokens.access_token}` } : undefined,
+        }
+      );
+      setUnreadCount(typeof data === 'number' ? data : 0);
+    } catch (error: any) {
+      console.error('Error loading unread count:', error);
+      setUnreadCount(0);
+    }
+  }, [isAuthenticated, user?._id, tokens?.access_token, API_BASE_URL]);
+
+  // Load unread count khi component mount và khi auth state thay đổi
+  useEffect(() => {
+    loadUnreadCount();
+    
+    // Reload unread count mỗi 5 giây khi đã đăng nhập
+    if (isAuthenticated && user?._id) {
+      const interval = setInterval(() => {
+        loadUnreadCount();
+      }, 5000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [loadUnreadCount, isAuthenticated, user?._id]);
 
   return (
     <Tab.Navigator
@@ -92,6 +131,19 @@ export default function TabNavigator() {
             iconName = 'bell';
           } else if (route.name === 'Account') {
             iconName = 'account';
+          }
+          
+          if (route.name === 'Notifications' && unreadCount > 0) {
+            return (
+              <View style={{ position: 'relative' }}>
+                <Icon name={iconName} size={size} color={color} />
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              </View>
+            );
           }
           
           return <Icon name={iconName} size={size} color={color} />;
@@ -161,10 +213,34 @@ export default function TabNavigator() {
       <Tab.Screen 
         name="Notifications" 
         component={NotificationsScreen}
-        options={{
+        listeners={{
+          focus: () => {
+            // Reload unread count khi focus vào tab Notifications
+            loadUnreadCount();
+          },
+        }}
+        options={({ navigation }) => ({
           title: 'Thông báo',
           tabBarLabel: 'Thông báo',
-        }}
+          headerRight: () => (
+            isAuthenticated ? (
+              <TouchableOpacity 
+                style={{ marginRight: 16, flexDirection: 'row', alignItems: 'center' }}
+                onPress={() => {
+                  // Navigate với param markAsRead để trigger mark as read trong NotificationsScreen
+                  navigation.navigate('Notifications', { markAsRead: Date.now() });
+                  // Reload unread count sau khi đánh dấu đã đọc
+                  setTimeout(() => loadUnreadCount(), 500);
+                }}
+              >
+                <View>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '500' }}>Đánh dấu đã đọc</Text>
+                  <View style={{ height: 1.5, backgroundColor: '#fff' }} />
+                </View>
+              </TouchableOpacity>
+            ) : null
+          ),
+        })}
       />
       <Tab.Screen 
         name="Account" 
@@ -178,3 +254,25 @@ export default function TabNavigator() {
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -10,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+});

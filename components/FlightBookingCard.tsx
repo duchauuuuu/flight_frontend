@@ -428,7 +428,7 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
         
         // selectedDate is already in display format from DatePickerScreen (e.g., "6 Thg 11, 2025")
         // So we can use it directly
-        if (dateType === 'departure') {
+      if (dateType === 'departure') {
           console.log('🟢 [DATE UPDATE] Updating DEPARTURE date to:', selectedDate);
           console.log('🟢 [DATE UPDATE] Will keep returnDate:', currentReturnDate);
           
@@ -440,7 +440,7 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
           setDepartDate(selectedDate);
           // Đảm bảo returnDate không bị thay đổi
           setReturnDate(currentReturnDate);
-        } else if (dateType === 'return') {
+      } else if (dateType === 'return') {
           console.log('🟢 [DATE UPDATE] Updating RETURN date to:', selectedDate);
           console.log('🟢 [DATE UPDATE] Will keep departDate:', currentDepartDate);
           
@@ -465,7 +465,7 @@ export default function FlightBookingCard({ airportData }: FlightBookingCardProp
         
         // Clear params ngay lập tức
         setTimeout(() => {
-          navigation.setParams({ selectedDate: undefined, dateType: undefined });
+      navigation.setParams({ selectedDate: undefined, dateType: undefined });
           console.log('🟢 [DATE UPDATE] Cleared params');
         }, 100);
         console.log('🟢 [DATE UPDATE] ========== DATE UPDATE COMPLETED ==========');
@@ -1153,7 +1153,7 @@ const styles = StyleSheet.create({
   },
   routeRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginBottom: 20,
     paddingHorizontal: 4,
@@ -1162,12 +1162,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
+    minWidth: 0,
   },
   routeIconContainer: {
     backgroundColor: 'transparent',
     padding: 8,
     borderRadius: 8,
     marginRight: 8,
+    marginTop: 0,
   },
   routeTextContainer: {
     flex: 1,
@@ -1190,7 +1192,8 @@ const styles = StyleSheet.create({
   },
   arrowContainer: {
     marginHorizontal: 4,
-    paddingTop: 16,
+    paddingTop: 8,
+    alignSelf: 'flex-start',
   },
   flightSection: {
     borderWidth: 1,

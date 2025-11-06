@@ -1,29 +1,146 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../store/authStore';
+import axios from 'axios';
 
 export default function ProfileScreen({ navigation }: any) {
-  const { user, logout } = useAuthStore();
+  const { user, logout, setUser, tokens } = useAuthStore();
   const [name, setName] = useState('');
   const [phoneCode, setPhoneCode] = useState('+84');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | 'other'>('male');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      setName(user.name || '');
-      setEmail(user.email || '');
-      setPhone(user.phone || '');
-      if (user.dob) {
-        // Format dob from YYYY-MM-DD to DD/MM/YYYY if needed
-        setBirthDate(user.dob);
-      }
+  const API_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_API_URL;
+
+  const loadUserData = useCallback(async () => {
+    if (!user?._id || !API_BASE_URL) {
+      return;
     }
-  }, [user]);
+
+    try {
+      setLoading(true);
+      const { data } = await axios.get(`${API_BASE_URL}/users/${user._id}`, {
+        headers: tokens?.access_token ? { Authorization: `Bearer ${tokens.access_token}` } : undefined,
+      });
+
+      setName(data.name || '');
+      setEmail(data.email || '');
+      setPhone(data.phone || '');
+      if (data.dob) {
+        setBirthDate(data.dob);
+      }
+      if (data.gender) {
+        setGender(data.gender as 'male' | 'female' | 'other');
+      }
+    } catch (error: any) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?._id, tokens?.access_token, API_BASE_URL]);
+
+  // Load user data khi focus vào screen
+  useFocusEffect(
+    useCallback(() => {
+      loadUserData();
+    }, [loadUserData])
+  );
+
+  // Fallback: Load từ store nếu chưa có dữ liệu từ backend
+  useEffect(() => {
+    if (user && !loading) {
+      if (!name && user.name) setName(user.name);
+      if (!email && user.email) setEmail(user.email);
+      if (!phone && user.phone) setPhone(user.phone);
+      if (!birthDate && user.dob) setBirthDate(user.dob);
+    }
+  }, [user, loading]);
+
+  const handleSave = async () => {
+    // Validate
+    if (!name.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập họ và tên');
+      return;
+    }
+    if (!email.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập email');
+      return;
+    }
+    if (!/^[a-zA-Z0-9]+@gmail\.com$/.test(email.trim())) {
+      Alert.alert('Lỗi', 'Vui lòng sử dụng email @gmail.com');
+      return;
+    }
+    if (!phone.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập số điện thoại');
+      return;
+    }
+
+    if (!user?._id || !API_BASE_URL) {
+      Alert.alert('Lỗi', 'Không tìm thấy thông tin người dùng');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const payload: any = {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+      };
+
+      if (birthDate.trim()) {
+        payload.dob = birthDate.trim();
+      }
+
+      if (gender) {
+        payload.gender = gender;
+      }
+
+      const { data } = await axios.put(`${API_BASE_URL}/users/${user._id}`, payload, {
+        headers: tokens?.access_token ? { Authorization: `Bearer ${tokens.access_token}` } : undefined,
+      });
+
+      // Tính membershipTier từ points (nếu có)
+      const getMembershipTier = (points: number): string => {
+        if (points >= 10000) return 'Kim Cương';
+        if (points >= 5000) return 'Bạch Kim';
+        if (points >= 2000) return 'Vàng';
+        if (points >= 500) return 'Bạc';
+        return 'Đồng';
+      };
+
+      // Cập nhật store với dữ liệu mới
+      const updatedUser = {
+        _id: data._id,
+        name: data.name || '',
+        email: data.email,
+        phone: data.phone || '',
+        dob: data.dob || '',
+        gender: data.gender || '',
+        points: data.points || 0,
+        membershipTier: getMembershipTier(data.points || 0),
+        role: data.role || 'Customer',
+      };
+
+      await setUser(updatedUser);
+
+      Alert.alert('Thành công', 'Thông tin đã được cập nhật');
+      navigation.goBack();
+    } catch (error: any) {
+      console.error('Error saving profile:', error);
+      const errorMessage =
+        error?.response?.data?.message || error?.message || 'Có lỗi xảy ra khi cập nhật thông tin';
+      Alert.alert('Lỗi', errorMessage);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Helper function to get initials from name
   const getInitials = (name?: string | null) => {
@@ -69,13 +186,6 @@ export default function ProfileScreen({ navigation }: any) {
           <Text style={styles.alertText}>
             Bổ sung đầy đủ thông tin sẽ giúp Flight hỗ trợ bạn tốt hơn khi đặt vé.
           </Text>
-        </View>
-
-        {/* Avatar */}
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{user ? getInitials(user.name) : 'U'}</Text>
-          </View>
         </View>
 
         {/* Name Input */}
@@ -182,8 +292,12 @@ export default function ProfileScreen({ navigation }: any) {
         </View>
 
         {/* Save Button */}
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Lưu</Text>
+        <TouchableOpacity
+          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+          onPress={handleSave}
+          disabled={saving || loading}
+        >
+          <Text style={styles.saveButtonText}>{saving ? 'Đang lưu...' : 'Lưu'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -246,23 +360,6 @@ const styles = StyleSheet.create({
     color: '#1976D2',
     marginLeft: 8,
     lineHeight: 18,
-  },
-  avatarContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FF69B4',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    color: '#fff',
-    fontSize: 32,
-    fontWeight: 'bold',
   },
   inputGroup: {
     marginBottom: 20,
@@ -389,6 +486,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 32,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   saveButtonText: {
     color: '#fff',

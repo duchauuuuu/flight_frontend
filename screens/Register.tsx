@@ -228,13 +228,6 @@ export default function RegisterScreen() {
           <Text style={styles.primaryText}>{submitting ? 'Đang xử lý...' : 'Đăng ký'}</Text>
         </TouchableOpacity>
 
-        <View style={styles.separator} />
-
-        <TouchableOpacity style={styles.googleBtn}>
-          <Image source={require('../assets/Google__G__logo.png')} style={{ width: 18, height: 18 }} resizeMode="contain" />
-          <Text style={styles.googleText}>Tiếp tục với Google</Text>
-        </TouchableOpacity>
-
         <View style={styles.bottomRow}>
           <Text style={styles.bottomText}>Bạn đã có tài khoản? </Text>
           <TouchableOpacity onPress={() => (navigation as any).navigate('Login')}>
@@ -341,25 +334,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#E5E7EB',
-    marginVertical: 18,
-  },
-  googleBtn: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  googleText: {
-    color: '#111827',
-    fontWeight: '600',
-    marginLeft: 8,
   },
   bottomRow: {
     flexDirection: 'row',
