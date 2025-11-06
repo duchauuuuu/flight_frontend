@@ -168,15 +168,25 @@ export default function LoginScreen({ onClose, onGotoRegister }: LoginScreenProp
                 
                 setSuccessMessage('Đăng nhập thành công!');
                 setErrors({...errors, general: ''});
-                if (onClose) {
-                  onClose();
+                
+                // Nếu là admin, app sẽ tự động chuyển sang AdminNavigator
+                // Nếu không phải admin, điều hướng như bình thường
+                if (userData.role !== 'Admin') {
+                  if (onClose) {
+                    onClose();
+                  } else {
+                    // Điều hướng ngay lập tức về AccountMain và đảm bảo đang ở tab Account
+                    const parent = navigation.getParent?.();
+                    parent?.navigate('Account');
+                    navigation.dispatch(
+                      CommonActions.reset({ index: 0, routes: [{ name: 'AccountMain' }] })
+                    );
+                  }
                 } else {
-                  // Điều hướng ngay lập tức về AccountMain và đảm bảo đang ở tab Account
-                  const parent = navigation.getParent?.();
-                  parent?.navigate('Account');
-                  navigation.dispatch(
-                    CommonActions.reset({ index: 0, routes: [{ name: 'AccountMain' }] })
-                  );
+                  // Admin: App sẽ tự động render AdminNavigator
+                  if (onClose) {
+                    onClose();
+                  }
                 }
               }
             } catch (e: any) {
@@ -189,13 +199,6 @@ export default function LoginScreen({ onClose, onGotoRegister }: LoginScreenProp
           }}
         >
           <Text style={styles.primaryText}>{submitting ? 'Đang xử lý...' : 'Đăng nhập'}</Text>
-        </TouchableOpacity>
-
-        <View style={styles.separator} />
-
-        <TouchableOpacity style={styles.googleBtn}>
-          <Image source={require('../assets/Google__G__logo.png')} style={{ width: 18, height: 18 }} resizeMode="contain" />
-          <Text style={styles.googleText}>Tiếp tục với Google</Text>
         </TouchableOpacity>
 
         <View style={styles.bottomRow}>
@@ -309,25 +312,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#E5E7EB',
-    marginVertical: 18,
-  },
-  googleBtn: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  googleText: {
-    color: '#111827',
-    fontWeight: '600',
-    marginLeft: 8,
   },
   bottomRow: {
     flexDirection: 'row',

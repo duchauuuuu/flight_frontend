@@ -1,7 +1,7 @@
 export type RootTabParamList = {
   Search: undefined;
   MyTickets: { refresh?: number } | undefined;
-  Notifications: undefined;
+  Notifications: { markAsRead?: number } | undefined;
   Account: undefined;
 };
 
@@ -10,6 +10,14 @@ export type AccountStackParamList = {
   Profile: undefined;
   Login: undefined;
   Register: undefined;
+  AdminDashboard: undefined;
+  AdminFlights: undefined;
+  AdminBookings: undefined;
+  AdminUsers: undefined;
+  AdminEditUser: { userId: string };
+  AdminAddUser: undefined;
+  AdminAddFlight?: { flightId?: string };
+  AdminEditFlight?: { flightId: string };
 };
 
 import { Flight } from './flight';

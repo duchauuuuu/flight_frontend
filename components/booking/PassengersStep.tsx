@@ -22,9 +22,25 @@ export default function PassengersStep({ styles, adultExpanded, setAdultExpanded
             <View key={p.id} style={styles.cardBox}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={styles.cardSubtitle}>Khách {idx + 1} - Người lớn</Text>
-                <TouchableOpacity onPress={() => onEditPassenger(idx, p.name)}>
-                  <Icon name="pencil-outline" size={18} color="#2873e6" />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <TouchableOpacity onPress={() => onEditPassenger(idx, p.name)}>
+                    <Icon name="pencil-outline" size={18} color="#2873e6" />
+                  </TouchableOpacity>
+                  {idx > 0 && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        // Xóa khách hàng khỏi danh sách
+                        const updatedPassengers = passengersInfo.filter((_, i) => i !== idx);
+                        setPassengersInfo(updatedPassengers);
+                        // Xóa baggage selection tương ứng
+                        const updatedBaggage = baggageSelections.filter((_, i) => i !== idx);
+                        setBaggageSelections(updatedBaggage);
+                      }}
+                    >
+                      <Icon name="close-circle" size={20} color="#EF4444" />
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
               <Text style={[styles.passengerName, !p.name ? { color: '#9CA3AF', fontWeight: '400' } : undefined]}>
                 {p.name ? p.name : 'Nhập thông tin'}
