@@ -1,14 +1,14 @@
 {
   "expo": {
     "name": "Flight Booking",
-    "slug": "flight-booking-app",
+    "slug": "flight",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/iconungdung.jpg",
+    "icon": "./assets/iconungdung.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/anhkhoichay.jpg",
+      "image": "./assets/anhkhoichay.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -21,7 +21,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.duchauuuuu.flight"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,6 +34,7 @@
       "eas": {
         "projectId": "11da1eab-2ab1-4c52-8e6e-c83f54dbd913"
       }
-    }
+    },
+    "owner": "duchauuuuu"
   }
 }
