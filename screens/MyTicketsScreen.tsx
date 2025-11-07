@@ -105,6 +105,17 @@ export default function MyTicketsScreen() {
     loadBookings();
   }, [loadBookings]);
 
+  // Listen for focus to reload when coming back to screen
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (isAuthenticated) {
+        loadBookings();
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, isAuthenticated, loadBookings]);
+
   // Listen for refresh trigger from navigation params
   useEffect(() => {
     const params = route.params as any;
